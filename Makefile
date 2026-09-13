@@ -4,7 +4,7 @@ BIN  = snake
 # Extra game flags, e.g. make play ARGS="--ascii --width=40"
 ARGS ?=
 
-.PHONY: all build play play-php autopilot autopilot-php test bench clean
+.PHONY: all build play play-php autopilot autopilot-php test bench parity clean
 
 all: build
 
@@ -42,6 +42,13 @@ bench: build
 	@$(PHP) -d opcache.enable_cli=1 -d opcache.jit=on -d opcache.jit_buffer_size=64M bin/$(BIN).php --bench
 	@echo "== native binary (TypePHP)"
 	@./$(BIN) --bench
+
+## The binary and the interpreter must play identical games and draw identical frames.
+parity: build
+	@native="$$(./$(BIN) --bench=20 | grep checksum)"; \
+	php="$$($(PHP) bin/$(BIN).php --bench=20 | grep checksum)"; \
+	echo "native: $$native"; echo "php:    $$php"; \
+	test "$$native" = "$$php" && echo "parity OK"
 
 clean:
 	rm -rf build $(BIN) $(BIN).rsp
