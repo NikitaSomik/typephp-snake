@@ -14,16 +14,18 @@ final class OptionsTest extends TestCase
         self::assertSame(24, $options->width);
         self::assertSame(16, $options->height);
         self::assertFalse($options->ascii);
+        self::assertSame(0, $options->benchGames);
         self::assertSame('', $options->error);
     }
 
     public function testParsesAllOptions(): void
     {
-        $options = Options::fromArgv(['snake', '--width=40', '--height=20', '--ascii']);
+        $options = Options::fromArgv(['snake', '--width=40', '--height=20', '--ascii', '--bench=5']);
 
         self::assertSame(40, $options->width);
         self::assertSame(20, $options->height);
         self::assertTrue($options->ascii);
+        self::assertSame(5, $options->benchGames);
         self::assertSame('', $options->error);
     }
 

@@ -2,6 +2,7 @@
 
 use Snake\App;
 use Snake\Autopilot;
+use Snake\Benchmark;
 use Snake\Game;
 use Snake\KeyParser;
 use Snake\Options;
@@ -24,6 +25,10 @@ function main(int $argc, array $argv): void
     if ($options->error !== '') {
         echo $options->error, "\n\n", Options::usage($program);
         exit(2);
+    }
+    if ($options->benchGames > 0) {
+        echo (new Benchmark())->run($options->benchGames, $options->width, $options->height);
+        return;
     }
 
     $game = new Game($options->width, $options->height, new SystemRandom());
