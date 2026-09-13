@@ -5,4 +5,5 @@ version: 1.0.0
 mode: bin
 sources:
   - main.php
+  - native
 build-dir: build
