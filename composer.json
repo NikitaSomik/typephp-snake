@@ -1,0 +1,34 @@
+{
+    "name": "nikitasomik/typephp-snake",
+    "description": "Terminal Snake written in PHP and compiled to a standalone native binary with TypePHP",
+    "type": "project",
+    "license": "MIT",
+    "keywords": ["typephp", "aot", "snake", "tui", "terminal", "game"],
+    "require": {
+        "php": ">=8.4 <8.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12",
+        "swoole/php-nano": "dev-master",
+        "swoole/phpx": "dev-master",
+        "swoole/typephp": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Snake\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Snake\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "build": "@php vendor/bin/tpc.php project.yml --nano -O2"
+    }
+}
