@@ -12,6 +12,8 @@ final class Options
     public bool $ascii = false;
     public bool $autopilot = false;
     public bool $help = false;
+    /** Number of autopilot games to simulate; 0 means play interactively. */
+    public int $benchGames = 0;
     public string $error = '';
 
     /** @param array<int, string> $argv */
@@ -27,6 +29,10 @@ final class Options
                 $options->ascii = true;
             } elseif ($arg === '--autopilot') {
                 $options->autopilot = true;
+            } elseif ($arg === '--bench') {
+                $options->benchGames = 200;
+            } elseif (str_starts_with($arg, '--bench=')) {
+                $options->benchGames = $options->number(substr($arg, 8), '--bench', 1, 100000);
             } elseif (str_starts_with($arg, '--width=')) {
                 $options->width = $options->number(substr($arg, 8), '--width', self::MIN_SIZE, self::MAX_SIZE);
             } elseif (str_starts_with($arg, '--height=')) {
@@ -48,6 +54,7 @@ final class Options
 
               --width=N    board width in cells  (default 24, 8..200)
               --height=N   board height in cells (default 16, 8..200)
+              --bench[=N]  headless benchmark: autopilot plays N seeded games (default 200)
               --ascii      draw with plain ASCII (#, @, o, *) instead of Unicode blocks
               --autopilot  sit back and watch a bot play (keys still work: P, R, Q)
               -h, --help   show this help
