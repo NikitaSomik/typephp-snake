@@ -10,6 +10,7 @@ final class Options
     public int $width = 24;
     public int $height = 16;
     public bool $ascii = false;
+    public bool $autopilot = false;
     public bool $help = false;
     public string $error = '';
 
@@ -24,6 +25,8 @@ final class Options
                 $options->help = true;
             } elseif ($arg === '--ascii') {
                 $options->ascii = true;
+            } elseif ($arg === '--autopilot') {
+                $options->autopilot = true;
             } elseif (str_starts_with($arg, '--width=')) {
                 $options->width = $options->number(substr($arg, 8), '--width', self::MIN_SIZE, self::MAX_SIZE);
             } elseif (str_starts_with($arg, '--height=')) {
@@ -46,6 +49,7 @@ final class Options
               --width=N    board width in cells  (default 24, 8..200)
               --height=N   board height in cells (default 16, 8..200)
               --ascii      draw with plain ASCII (#, @, o, *) instead of Unicode blocks
+              --autopilot  sit back and watch a bot play (keys still work: P, R, Q)
               -h, --help   show this help
 
             Controls: arrows / WASD / hjkl move, P or Space pause, R restart, Q quit.

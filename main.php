@@ -1,6 +1,7 @@
 <?php
 
 use Snake\App;
+use Snake\Autopilot;
 use Snake\Game;
 use Snake\KeyParser;
 use Snake\Options;
@@ -26,7 +27,7 @@ function main(int $argc, array $argv): void
     }
 
     $game = new Game($options->width, $options->height, new SystemRandom());
-    $app = new App(new Renderer($options->ascii), new KeyParser());
+    $app = new App(new Renderer($options->ascii), new KeyParser(), $options->autopilot ? new Autopilot() : null);
     $code = $app->run($game);
     if ($code !== 0) {
         exit($code);

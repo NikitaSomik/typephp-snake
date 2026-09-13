@@ -3,9 +3,11 @@
 namespace Snake\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Snake\Autopilot;
 use Snake\Direction;
 use Snake\Game;
 use Snake\Point;
+use Snake\SeededRandom;
 
 final class GameTest extends TestCase
 {
@@ -110,5 +112,44 @@ final class GameTest extends TestCase
         self::assertSame(0, $game->score);
         self::assertSame(0, $game->ticks);
         self::assertEquals(new Point(12, 5), $game->snake->head());
+    }
+
+    public function testFillingTheBoardWinsTheGame(): void
+    {
+        // An 8x8 board holds 64 cells; the game is won once the last free cell is eaten.
+        $game = new Game(8, 8, new SeededRandom(7));
+        $autopilot = new Autopilot();
+        while (!$game->isFinished()) {
+            $game->turn($autopilot->chooseDirection($game));
+            $game->tick();
+        }
+
+        self::assertContains($game->state, [Game::OVER, Game::WON]);
+        if ($game->state === Game::WON) {
+            self::assertNull($game->food);
+            self::assertSame(64, $game->snake->length());
+        }
+    }
+
+    public function testSeededGamesAreReproducible(): void
+    {
+        $first = $this->playAutopilotGame(42);
+        $second = $this->playAutopilotGame(42);
+
+        self::assertSame($first, $second);
+        self::assertGreaterThan(0, $first[1]);
+    }
+
+    /** @return array{int, int} ticks and score */
+    private function playAutopilotGame(int $seed): array
+    {
+        $game = new Game(16, 12, new SeededRandom($seed));
+        $autopilot = new Autopilot();
+        while (!$game->isFinished() && $game->ticks < 10_000) {
+            $game->turn($autopilot->chooseDirection($game));
+            $game->tick();
+        }
+
+        return [$game->ticks, $game->score];
     }
 }

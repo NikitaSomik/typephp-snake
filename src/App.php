@@ -18,6 +18,7 @@ final class App
     public function __construct(
         private readonly Renderer $renderer,
         private readonly KeyParser $parser,
+        private readonly ?Autopilot $autopilot = null,
     ) {
     }
 
@@ -70,6 +71,9 @@ final class App
                 if (!$this->renderer->fits($game, $cols, $rows) && $game->state === Game::RUNNING) {
                     // Never let the snake run while the board can't be seen.
                     $game->togglePause();
+                }
+                if ($this->autopilot !== null && $game->state === Game::RUNNING) {
+                    $game->turn($this->autopilot->chooseDirection($game));
                 }
                 $game->tick();
                 $this->best = max($this->best, $game->score);
