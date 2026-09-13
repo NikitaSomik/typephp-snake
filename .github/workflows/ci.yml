@@ -9,10 +9,16 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels its outdated run; every run on main finishes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   test:
     name: Tests · PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -26,6 +32,11 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: vendor-${{ runner.os }}-php${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+
       - run: composer install --no-interaction --no-progress
 
       - run: vendor/bin/phpunit
@@ -33,6 +44,7 @@ jobs:
   quality:
     name: Static analysis and code style
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -41,6 +53,14 @@ jobs:
           php-version: "8.5"
           coverage: none
           tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: vendor-${{ runner.os }}-php8.5-${{ hashFiles('composer.lock') }}
 
       - run: composer install --no-interaction --no-progress
 
@@ -53,6 +73,7 @@ jobs:
   build:
     name: Native binary · ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -65,6 +86,16 @@ jobs:
           php-version: "8.5"
           coverage: none
           tools: composer:v2
+
+      # TypePHP reuses a PHP Nano object only when it is newer than its source in
+      # vendor/, so both directories are cached together (the cache keeps file
+      # times). The key is exact: after a runtime update everything is rebuilt.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            build
+          key: native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('composer.lock') }}
 
       - run: composer install --no-interaction --no-progress
 
