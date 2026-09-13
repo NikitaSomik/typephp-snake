@@ -19,8 +19,7 @@ final class App
         private readonly Renderer $renderer,
         private readonly KeyParser $parser,
         private readonly ?Autopilot $autopilot = null,
-    ) {
-    }
+    ) {}
 
     /** @return int process exit code */
     public function run(Game $game): int

@@ -14,7 +14,7 @@ final class RendererTest extends TestCase
         $screen = $this->plain((new Renderer(true))->render($game, 0, 60, 20));
 
         $lines = explode("\n", $screen);
-        $board = array_values(array_filter($lines, static fn (string $line): bool => str_contains($line, '##')));
+        $board = array_values(array_filter($lines, static fn(string $line): bool => str_contains($line, '##')));
 
         self::assertCount(8 + 2, $board, 'two wall rows plus one row per board row');
         self::assertStringContainsString('##**', $board[1], 'food in the top-left cell');
