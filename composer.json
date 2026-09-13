@@ -29,6 +29,7 @@
         "sort-packages": true
     },
     "scripts": {
-        "build": "@php vendor/bin/tpc.php project.yml --nano -O2"
+        "build": "@php vendor/bin/tpc.php project.yml --nano -O2",
+        "test": "@php vendor/bin/phpunit"
     }
 }
