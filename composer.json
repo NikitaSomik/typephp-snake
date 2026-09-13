@@ -30,6 +30,7 @@
     },
     "scripts": {
         "build": "@php vendor/bin/tpc.php project.yml --nano -O2",
+        "play": "@php bin/snake.php",
         "test": "@php vendor/bin/phpunit"
     }
 }

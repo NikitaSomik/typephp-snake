@@ -1,9 +1,34 @@
 <?php
 
+use Snake\App;
+use Snake\Game;
+use Snake\KeyParser;
+use Snake\Options;
+use Snake\Renderer;
+use Snake\SystemRandom;
+
 /**
- * TypePHP binaries start at a global main(); top-level code is not allowed.
+ * Entry point. TypePHP binaries start at a global main() — top-level code is
+ * not allowed — and bin/snake.php calls the very same function on regular PHP.
  */
-function main(): void
+function main(int $argc, array $argv): void
 {
-    echo "Hello from PHP, compiled to a native binary by TypePHP!\n";
+    $program = $argc > 0 ? $argv[0] : 'snake';
+    $options = Options::fromArgv($argv);
+
+    if ($options->help) {
+        echo Options::usage($program);
+        return;
+    }
+    if ($options->error !== '') {
+        echo $options->error, "\n\n", Options::usage($program);
+        exit(2);
+    }
+
+    $game = new Game($options->width, $options->height, new SystemRandom());
+    $app = new App(new Renderer($options->ascii), new KeyParser());
+    $code = $app->run($game);
+    if ($code !== 0) {
+        exit($code);
+    }
 }
