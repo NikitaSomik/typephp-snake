@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests · PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.4", "8.5"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress
+
+      - run: vendor/bin/phpunit
+
+  build:
+    name: Native binary · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress
+
+      - name: Compile with TypePHP (--nano)
+        run: php vendor/bin/tpc.php project.yml --nano -O2 --no-progress
+
+      - name: Smoke test
+        run: |
+          file snake
+          ./snake --help
+          ./snake --bench=20
+
+      - name: Native and interpreter play identical games
+        run: make parity
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snake-${{ runner.os }}-${{ runner.arch }}
+          path: snake
+          if-no-files-found: error
