@@ -9,10 +9,16 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels its outdated run; every run on main finishes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   test:
     name: Tests · PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -38,6 +44,7 @@ jobs:
   quality:
     name: Static analysis and code style
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +53,9 @@ jobs:
           php-version: "8.5"
           coverage: none
           tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
 
       - uses: actions/cache@v4
         with:
@@ -63,6 +73,7 @@ jobs:
   build:
     name: Native binary · ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
