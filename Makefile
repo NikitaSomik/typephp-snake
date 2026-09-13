@@ -2,7 +2,7 @@ PHP ?= php
 TPC  = $(PHP) vendor/bin/tpc.php
 BIN  = snake
 
-.PHONY: all build clean
+.PHONY: all build test clean
 
 all: build
 
@@ -13,6 +13,9 @@ vendor: composer.json composer.lock
 ## Compile PHP → C++ → a standalone native binary (PHP Nano runtime, no libphp).
 build: vendor
 	$(TPC) project.yml --nano -O2
+
+test: vendor
+	$(PHP) vendor/bin/phpunit
 
 clean:
 	rm -rf build $(BIN) $(BIN).rsp
