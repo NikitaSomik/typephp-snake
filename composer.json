@@ -8,6 +8,8 @@
         "php": ">=8.4 <8.6"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^12",
         "swoole/php-nano": "dev-master",
         "swoole/phpx": "dev-master",
@@ -32,6 +34,9 @@
         "build": "@php vendor/bin/tpc.php project.yml --nano -O2",
         "play": "@php bin/snake.php",
         "bench": "@php bin/snake.php --bench",
-        "test": "@php vendor/bin/phpunit"
+        "test": "@php vendor/bin/phpunit",
+        "analyse": "@php vendor/bin/phpstan analyse --memory-limit=1G",
+        "cs": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "@php vendor/bin/php-cs-fixer fix"
     }
 }

@@ -1,0 +1,10 @@
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+        - main.php
+        - bin
+        - polyfill
+    stubFiles:
+        - native/terminal.stub.php
