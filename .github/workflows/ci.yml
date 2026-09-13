@@ -30,6 +30,26 @@ jobs:
 
       - run: vendor/bin/phpunit
 
+  quality:
+    name: Static analysis and code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress
+
+      - name: PHPStan (level max)
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: PHP-CS-Fixer (PER-CS)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
   build:
     name: Native binary · ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

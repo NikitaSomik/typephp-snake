@@ -29,7 +29,7 @@ final class KeyParserTest extends TestCase
     #[DataProvider('inputs')]
     public function testParse(string $input, array $expected): void
     {
-        $bytes = array_values(array_map(ord(...), str_split($input)));
+        $bytes = array_map(ord(...), str_split($input));
 
         self::assertSame($expected, (new KeyParser())->parse($bytes));
     }

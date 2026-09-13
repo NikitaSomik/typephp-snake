@@ -12,6 +12,8 @@
 composer install
 make build        # vendor/bin/tpc.php project.yml --nano -O2  → ./snake
 make test         # PHPUnit (rules, key parser, options, renderer)
+make analyse      # PHPStan, level max (native/terminal.stub.php is a stub file, not analysed)
+make cs           # PHP-CS-Fixer dry run, PER-CS; make cs-fix applies it
 make parity       # the binary and the interpreter must produce the same checksum
 make bench        # PHP vs PHP+JIT vs native binary
 make play-php     # the same game on the interpreter (polyfill/terminal.php)
@@ -45,4 +47,5 @@ The interactive game can be tested without a real terminal using Python's `pty` 
 ## Style
 
 - PHP 8.4+: `final`/`readonly` classes, promoted properties, `private(set)`, typed constants, `match`.
-- Code must behave the same in the binary and in the interpreter — run `make test` and `make parity` after changes.
+- PHPStan level max and PER-CS must stay clean — fix the cause instead of adding ignores or baselines. Array element ranges go in PHPDoc (`list<int<0, 255>>`); TypePHP ignores PHPDoc.
+- Code must behave the same in the binary and in the interpreter — run `make test`, `make analyse`, `make cs` and `make parity` after changes.

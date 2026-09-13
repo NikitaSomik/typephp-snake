@@ -19,8 +19,7 @@ final class App
         private readonly Renderer $renderer,
         private readonly KeyParser $parser,
         private readonly ?Autopilot $autopilot = null,
-    ) {
-    }
+    ) {}
 
     /** @return int process exit code */
     public function run(Game $game): int
@@ -83,7 +82,10 @@ final class App
         }
     }
 
-    /** @return bool false when the player quits */
+    /**
+     * @param int<0, 255> $firstByte
+     * @return bool false when the player quits
+     */
     private function handleInput(Game $game, int $firstByte): bool
     {
         // An arrow key is several bytes; they arrive together, so drain them now.

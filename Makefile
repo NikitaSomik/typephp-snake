@@ -4,7 +4,7 @@ BIN  = snake
 # Extra game flags, e.g. make play ARGS="--ascii --width=40"
 ARGS ?=
 
-.PHONY: all build play play-php autopilot autopilot-php test bench parity clean
+.PHONY: all build play play-php autopilot autopilot-php test analyse cs cs-fix bench parity clean
 
 all: build
 
@@ -33,6 +33,16 @@ autopilot-php: vendor
 
 test: vendor
 	$(PHP) vendor/bin/phpunit
+
+## Static analysis (PHPStan, level max) and code style (PHP-CS-Fixer, PER-CS).
+analyse: vendor
+	$(PHP) vendor/bin/phpstan analyse --memory-limit=1G
+
+cs: vendor
+	$(PHP) vendor/bin/php-cs-fixer fix --dry-run --diff
+
+cs-fix: vendor
+	$(PHP) vendor/bin/php-cs-fixer fix
 
 ## Headless benchmark: PHP interpreter, PHP + JIT, native binary.
 bench: build

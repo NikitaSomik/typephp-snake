@@ -12,6 +12,8 @@ use Snake\SystemRandom;
 /**
  * Entry point. TypePHP binaries start at a global main() — top-level code is
  * not allowed — and bin/snake.php calls the very same function on regular PHP.
+ *
+ * @param list<string> $argv
  */
 function main(int $argc, array $argv): void
 {

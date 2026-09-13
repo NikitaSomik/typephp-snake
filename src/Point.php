@@ -7,8 +7,7 @@ final readonly class Point
     public function __construct(
         public int $x,
         public int $y,
-    ) {
-    }
+    ) {}
 
     public function step(int $direction): Point
     {
