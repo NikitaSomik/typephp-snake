@@ -8,6 +8,7 @@ function term_raw_on(): bool {}
 
 function term_raw_off(): void {}
 
+/** @return int<-1, 255> the byte, or -1 when nothing arrived in time */
 function term_read_byte(int $timeoutMs): int {}
 
 function term_cols(): int {}

@@ -8,4 +8,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../polyfill/terminal.php';
 require __DIR__ . '/../main.php';
 
-main($argc, $argv);
+$arguments = $_SERVER['argv'] ?? [];
+$arguments = is_array($arguments) ? array_values(array_filter($arguments, is_string(...))) : [];
+
+main(count($arguments), $arguments);

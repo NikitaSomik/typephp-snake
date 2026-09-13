@@ -3,12 +3,24 @@
 // Pure-PHP twin of native/terminal.cc, used when the game runs on the regular
 // PHP interpreter (bin/snake.php). Same function names, same semantics.
 
+/** State shared by the functions below. */
+final class TerminalPolyfillState
+{
+    /** Output of `stty -g` taken before switching to raw mode; empty when not raw. */
+    public static string $savedMode = '';
+
+    /** @var array{int, int} rows and columns */
+    public static array $size = [24, 80];
+
+    public static int $sizeExpiresAt = 0;
+}
+
 function term_raw_on(): bool
 {
     if (!stream_isatty(STDIN)) {
         return false;
     }
-    $GLOBALS['__snake_stty'] = trim((string) shell_exec('stty -g'));
+    TerminalPolyfillState::$savedMode = trim((string) shell_exec('stty -g'));
     shell_exec('stty -echo -icanon -isig -iexten -ixon -icrnl min 0 time 0');
     register_shutdown_function('term_raw_off');
 
@@ -17,13 +29,14 @@ function term_raw_on(): bool
 
 function term_raw_off(): void
 {
-    $saved = $GLOBALS['__snake_stty'] ?? '';
+    $saved = TerminalPolyfillState::$savedMode;
     if ($saved !== '') {
         shell_exec('stty ' . escapeshellarg($saved));
-        $GLOBALS['__snake_stty'] = '';
+        TerminalPolyfillState::$savedMode = '';
     }
 }
 
+/** @return int<-1, 255> */
 function term_read_byte(int $timeoutMs): int
 {
     $read = [STDIN];
@@ -55,19 +68,16 @@ function term_rows(): int
  */
 function term_size(): array
 {
-    static $cached = [24, 80];
-    static $expiresAt = 0;
-
     $now = hrtime(true);
-    if ($now >= $expiresAt) {
+    if ($now >= TerminalPolyfillState::$sizeExpiresAt) {
         $size = explode(' ', trim((string) shell_exec('stty size 2>/dev/null')));
         if (count($size) === 2) {
-            $cached = [(int) $size[0], (int) $size[1]];
+            TerminalPolyfillState::$size = [(int) $size[0], (int) $size[1]];
         }
-        $expiresAt = $now + 500_000_000;
+        TerminalPolyfillState::$sizeExpiresAt = $now + 500_000_000;
     }
 
-    return $cached;
+    return TerminalPolyfillState::$size;
 }
 
 function term_flush(): void

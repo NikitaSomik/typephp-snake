@@ -14,7 +14,7 @@ final class KeyParser
     private const int CTRL_C = 3;
 
     /**
-     * @param list<int> $bytes
+     * @param list<int<0, 255>> $bytes
      * @return list<int> Key::* values
      */
     public function parse(array $bytes): array
@@ -53,6 +53,7 @@ final class KeyParser
         };
     }
 
+    /** @param int<0, 255> $byte */
     private function plain(int $byte): int
     {
         if ($byte === self::CTRL_C) {

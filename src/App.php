@@ -83,7 +83,10 @@ final class App
         }
     }
 
-    /** @return bool false when the player quits */
+    /**
+     * @param int<0, 255> $firstByte
+     * @return bool false when the player quits
+     */
     private function handleInput(Game $game, int $firstByte): bool
     {
         // An arrow key is several bytes; they arrive together, so drain them now.
