@@ -17,7 +17,7 @@ The same source also runs on the regular PHP interpreter, which makes it a small
 - **Same code on both runtimes.** `bin/snake.php` runs the game on stock PHP through a pure-PHP polyfill of that terminal API. A parity check proves both runtimes play identical games and draw byte-identical frames.
 - **A real game loop.** Fixed-tick simulation, input polled with a deadline (no busy waiting), buffered turns, pause, restart, speed-up, flicker-free full-frame rendering, resize handling and Unicode or ASCII graphics.
 - **Measured, not assumed.** A headless `--bench` mode, a profiling pass and a write-up of what AOT did and did not buy (see [Performance](#performance)).
-- **Tested and checked.** 32 PHPUnit tests for the rules, input parser, options and renderer, PHPStan at level max and the PER-CS coding style. CI runs all of it and builds the binary on Linux and macOS.
+- **Tested and checked.** 33 PHPUnit tests for the rules, input parser, options and renderer, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it and builds the binary on Linux and macOS.
 
 ## Quick start
 
@@ -46,6 +46,7 @@ make build      # PHP → C++ → ./snake  (≈20 s the first time, cached after
 | `make cs` / `make cs-fix` | Check / fix the PER-CS coding style |
 | `make bench` | Compare PHP, PHP + JIT and the native binary |
 | `make parity` | Check that native and PHP produce identical games |
+| `make smoke` | Play both versions in a pseudo-terminal and check the screen |
 
 Controls: arrows / WASD / hjkl to move, <kbd>P</kbd> or <kbd>Space</kbd> to pause, <kbd>R</kbd> to restart, <kbd>Q</kbd> or <kbd>Ctrl+C</kbd> to quit.
 
@@ -87,7 +88,7 @@ flowchart LR
 ├── native/terminal.stub.php  declarations TypePHP binds to the C++ code
 ├── polyfill/terminal.php     same API in pure PHP (stty + stream_select)
 ├── bin/snake.php             runs the game on the PHP interpreter
-├── tests/                    PHPUnit
+├── tests/                    PHPUnit, plus tests/tty/smoke.py that plays the game in a pseudo-terminal
 └── project.yml               TypePHP build configuration
 ```
 
@@ -132,6 +133,7 @@ TypePHP is young, and most of the time here went into finding out what works. Ev
 | `int / int` compiles to C++ integer division: `1000 / 140` is `7`, not `7.14`. This is documented; `use varint_types` restores PHP semantics. | `1000.0 / $ms` |
 | Unqualified global constants inside a namespace are not resolved: *Undefined constant "Snake\PHP_INT_MAX"*. | `\PHP_INT_MAX` |
 | The Nano dependency audit rejects `poll`, `select` and `ioctl`, but only on Linux. On macOS it silently checks nothing: it parses the Linux `nm -u` format (`U poll@GLIBC`), while macOS prints a bare `_poll`. The first terminal layer built fine on a Mac and failed in a Linux container. | Keys via non-blocking `read()` + `nanosleep`, window size via a cursor position report; verified in a Linux container |
+| `array_shift($this->queue)` passes the property by reference and leaves it as a PHP reference. The next `$this->queue = []` segfaults inside `zend_try_assign_typed_ref`: the binary crashed when restarting after a turn, while the interpreter was fine. | Read `[0]` and reassign with `array_slice()`; regression tests in PHPUnit and in the pseudo-terminal smoke test |
 | `RuntimeException` (SPL) breaks the link step in selective Nano builds (unresolved PCRE symbols). | Core `Exception` only |
 | Some functions are rejected at compile time in Nano (`getenv`), while others compile but are missing at runtime (`flush`). `ctype` and `mbstring` are absent. | `strspn` instead of `ctype_digit`, a manual UTF-8 width counter, explicit `term_flush()` |
 | `#[\Native]` fixed-layout classes looked like the way to go faster. However, `$this->method($arg)` inside a native class fails to compile (*variable `$this` is undefined*), native objects cannot be passed to non-native classes, interfaces or static methods, and they cannot be array values. | Kept regular classes. The experiment is described here rather than committed. |
