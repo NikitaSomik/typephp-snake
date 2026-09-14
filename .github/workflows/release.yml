@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  # Changes to this workflow build and package every binary in the pull request
+  # without publishing anything, so a broken release is caught before tagging.
+  pull_request:
+    paths: [".github/workflows/release.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build · ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux binaries link against glibc dynamically: build on the oldest
+          # supported Ubuntu so they also run on newer distributions.
+          - { os: ubuntu-22.04, target: linux-x64 }
+          - { os: ubuntu-22.04-arm, target: linux-arm64 }
+          - { os: macos-latest, target: macos-arm64 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          coverage: none
+          tools: composer:v2
+
+      - run: composer install --no-interaction --no-progress
+
+      - name: Compile with TypePHP (--nano)
+        run: php vendor/bin/tpc.php project.yml --nano -O2 --no-progress
+
+      - name: Check the binary
+        run: |
+          file snake
+          ./snake --bench=20
+          python3 tests/tty/smoke.py ./snake
+
+      - name: Package
+        run: |
+          mkdir -p "dist/snake-${{ matrix.target }}"
+          cp snake README.md LICENSE "dist/snake-${{ matrix.target }}/"
+          tar -czf "dist/snake-${{ matrix.target }}.tar.gz" -C dist "snake-${{ matrix.target }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snake-${{ matrix.target }}
+          path: dist/snake-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum snake-*.tar.gz > SHA256SUMS
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
