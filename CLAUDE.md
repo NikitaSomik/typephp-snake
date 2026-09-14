@@ -15,13 +15,14 @@ make test         # PHPUnit (rules, key parser, options, renderer)
 make analyse      # PHPStan, level max (native/terminal.stub.php is a stub file, not analysed)
 make cs           # PHP-CS-Fixer dry run, PER-CS; make cs-fix applies it
 make parity       # the binary and the interpreter must produce the same checksum
+make smoke        # tests/tty/smoke.py: play both versions in a pseudo-terminal (turn, pause, game over, restart, quit)
 make bench        # PHP vs PHP+JIT vs native binary
 make play-php     # the same game on the interpreter (polyfill/terminal.php)
 make autopilot    # watch the bot play; pass flags with ARGS="--ascii"
 ./snake --autopilot | --ascii | --width=N --height=N | --bench[=N]
 ```
 
-The interactive game can be tested without a real terminal using Python's `pty` module: run the binary in a pseudo-terminal, send key bytes, answer `ESC[6n` with `ESC[rows;colsR` like a real terminal, and take the last complete frame (between `ESC[H` and `ESC[J`). Keep reading the pty while waiting for the process to exit, otherwise the game blocks on a full output buffer.
+`tests/tty/smoke.py` tests the interactive game without a real terminal: it runs the game in a pseudo-terminal, sends key bytes, answers `ESC[6n` with `ESC[rows;colsR` like a real terminal and reads the last complete frame (between `ESC[H` and `ESC[J`). Keep reading the pty while waiting for the process to exit, otherwise the game blocks on a full output buffer.
 
 ## Architecture
 
@@ -38,6 +39,7 @@ The interactive game can be tested without a real terminal using Python's `pty` 
 - **`int / int` is integer division** (as in C++). Write `1000.0 / $x` for a float, or `intdiv()` for an explicit integer.
 - Inside a namespace, prefix global constants with `\`: `\PHP_INT_MAX`.
 - Native code must not import `poll`, `select`, `ioctl`, processes, sockets, signals or `mmap` — the Nano audit fails the Linux build. The macOS audit misses these, so check Linux (CI or a container) after touching `native/`.
+- Don't pass properties by reference to functions (`array_shift($this->x)`, `sort($this->x)`, …) when the property is assigned again later: TypePHP leaves it as a PHP reference and the next assignment segfaults the binary. Work on a copy or use `array_slice()`. PHPUnit can't catch this — only the binary crashes, so run `make smoke`.
 - Don't use SPL exceptions (`RuntimeException` etc.) — they break the Nano link step; use `Exception` only.
 - No `ctype_*`, `mb_*`, `getenv` (compile error), `flush` (fails at runtime). No processes, signals, sockets or `include/require`.
 - In hot loops, cast array elements to their type: `(int) $grid[$i]` — otherwise the variable becomes `php::Var`. Check the result in `build/src/*.cc`.

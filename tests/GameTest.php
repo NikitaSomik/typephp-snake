@@ -114,6 +114,25 @@ final class GameTest extends TestCase
         self::assertEquals(new Point(12, 5), $game->snake->head());
     }
 
+    public function testRestartAfterTurningIntoAWall(): void
+    {
+        // Regression: in the TypePHP binary this sequence segfaulted on restart, because
+        // array_shift() on the turn queue property turned it into a PHP reference.
+        // The interpreter never crashed; tests/tty/smoke.py checks the binary itself.
+        $game = new Game(20, 10, new FixedRandom());
+        $game->turn(Direction::UP);
+        while (!$game->isFinished()) {
+            $game->tick();
+        }
+
+        $game->restart();
+        $game->turn(Direction::DOWN);
+        $game->tick();
+
+        self::assertSame(Game::RUNNING, $game->state);
+        self::assertEquals(new Point(12, 6), $game->snake->head());
+    }
+
     public function testFillingTheBoardWinsTheGame(): void
     {
         // An 8x8 board holds 64 cells; the game is won once the last free cell is eaten.

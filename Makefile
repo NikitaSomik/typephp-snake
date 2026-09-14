@@ -4,7 +4,7 @@ BIN  = snake
 # Extra game flags, e.g. make play ARGS="--ascii --width=40"
 ARGS ?=
 
-.PHONY: all build play play-php autopilot autopilot-php test analyse cs cs-fix bench parity clean
+.PHONY: all build play play-php autopilot autopilot-php test analyse cs cs-fix smoke bench parity clean
 
 all: build
 
@@ -43,6 +43,11 @@ cs: vendor
 
 cs-fix: vendor
 	$(PHP) vendor/bin/php-cs-fixer fix
+
+## Play in a pseudo-terminal like a person would: the native binary and the interpreter.
+smoke: build
+	python3 tests/tty/smoke.py ./$(BIN)
+	python3 tests/tty/smoke.py $(PHP) bin/$(BIN).php
 
 ## Headless benchmark: PHP interpreter, PHP + JIT, native binary.
 bench: build
