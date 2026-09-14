@@ -111,6 +111,11 @@ jobs:
       - name: Native and interpreter play identical games
         run: make parity
 
+      - name: Play in a pseudo-terminal (binary and interpreter)
+        run: |
+          python3 tests/tty/smoke.py ./snake
+          python3 tests/tty/smoke.py php bin/snake.php
+
       - uses: actions/upload-artifact@v4
         with:
           name: snake-${{ runner.os }}-${{ runner.arch }}
