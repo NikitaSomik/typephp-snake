@@ -24,6 +24,10 @@ make autopilot    # watch the bot play; pass flags with ARGS="--ascii"
 
 `tests/tty/smoke.py` tests the interactive game without a real terminal: it runs the game in a pseudo-terminal, sends key bytes, answers `ESC[6n` with `ESC[rows;colsR` like a real terminal and reads the last complete frame (between `ESC[H` and `ESC[J`). Keep reading the pty while waiting for the process to exit, otherwise the game blocks on a full output buffer.
 
+## Releases
+
+Push a tag `vX.Y.Z` on main: `.github/workflows/release.yml` builds Linux x64/arm64 (on Ubuntu 22.04, for glibc compatibility) and macOS arm64, runs the smoke test and publishes the archives plus `SHA256SUMS` to a GitHub Release. Pull requests that change the workflow run the builds without publishing.
+
 ## Architecture
 
 - `main.php` — global `main(int $argc, array $argv)`; TypePHP does not allow top-level code.
