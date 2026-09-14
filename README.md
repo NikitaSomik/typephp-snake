@@ -19,9 +19,21 @@ The same source also runs on the regular PHP interpreter, which makes it a small
 - **Measured, not assumed.** A headless `--bench` mode, a profiling pass and a write-up of what AOT did and did not buy (see [Performance](#performance)).
 - **Tested and checked.** 33 PHPUnit tests for the rules, input parser, options and renderer, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it and builds the binary on Linux and macOS.
 
+## Download
+
+Prebuilt binaries are attached to every [release](https://github.com/NikitaSomik/typephp-snake/releases/latest): Linux x64 and arm64 (glibc 2.35+, e.g. Ubuntu 22.04 or newer) and macOS on Apple silicon. They need no PHP.
+
+```bash
+# pick one: snake-linux-x64, snake-linux-arm64, snake-macos-arm64
+curl -fsSL https://github.com/NikitaSomik/typephp-snake/releases/latest/download/snake-macos-arm64.tar.gz | tar -xz
+./snake-macos-arm64/snake
+```
+
+The macOS binary is not signed. Downloading it with `curl` as above works as is; if you download it in a browser, macOS blocks it until you run `xattr -d com.apple.quarantine snake`.
+
 ## Quick start
 
-Requirements: PHP 8.4 or 8.5 CLI, Composer 2, and a C/C++17 compiler (clang or gcc). No PHP embed SAPI or extra libraries are needed.
+To build from source you need PHP 8.4 or 8.5 CLI, Composer 2, and a C/C++17 compiler (clang or gcc). No PHP embed SAPI or extra libraries are needed.
 
 ```bash
 git clone https://github.com/NikitaSomik/typephp-snake.git
