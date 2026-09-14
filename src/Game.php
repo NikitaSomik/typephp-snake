@@ -85,7 +85,11 @@ final class Game
             return;
         }
         if ($this->turnQueue !== []) {
-            $this->snake->turn(array_shift($this->turnQueue));
+            // Not array_shift($this->turnQueue): TypePHP passes the property by reference
+            // and leaves it as a PHP reference, so the next `$this->turnQueue = []` in
+            // restart() segfaults the binary (zend_try_assign_typed_ref).
+            $this->snake->turn($this->turnQueue[0]);
+            $this->turnQueue = array_slice($this->turnQueue, 1);
         }
 
         $next = $this->snake->nextHead();
