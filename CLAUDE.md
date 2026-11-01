@@ -26,7 +26,7 @@ make autopilot    # watch the bot play; pass flags with ARGS="--ascii"
 
 ## Releases
 
-Push a tag `vX.Y.Z` on main: `.github/workflows/release.yml` builds Linux x64/arm64 (on Ubuntu 22.04, for glibc compatibility) and macOS arm64, runs the smoke test and attests each archive and publishes them plus `SHA256SUMS` to a GitHub Release. Pull requests that change the workflow run the builds without publishing.
+Bump `Options::VERSION` and `version` in `project.yml`, then push a tag `vX.Y.Z` on main (the workflow fails if `./snake --version` differs from the tag): `.github/workflows/release.yml` builds Linux x64/arm64 (on Ubuntu 22.04, for glibc compatibility) and macOS arm64, runs the smoke test, attests each archive and publishes them plus `SHA256SUMS` to a GitHub Release. Pull requests that change the workflow run the builds without publishing.
 
 ## Architecture
 

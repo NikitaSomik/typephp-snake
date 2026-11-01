@@ -1,7 +1,7 @@
 # TypePHP build configuration. Build with:
 #   vendor/bin/tpc.php project.yml --nano -O2
 name: snake
-version: 1.0.0
+version: 1.0.1
 mode: bin
 sources:
   - main.php

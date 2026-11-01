@@ -4,6 +4,9 @@ namespace Snake;
 
 final class Options
 {
+    /** Keep in sync with project.yml; the release workflow checks it against the tag. */
+    public const string VERSION = '1.0.1';
+
     public const int MIN_SIZE = 8;
     public const int MAX_SIZE = 200;
 
@@ -12,6 +15,7 @@ final class Options
     public bool $ascii = false;
     public bool $autopilot = false;
     public bool $help = false;
+    public bool $version = false;
     /** Number of autopilot games to simulate; 0 means play interactively. */
     public int $benchGames = 0;
     public string $error = '';
@@ -25,6 +29,8 @@ final class Options
             $arg = $argv[$i];
             if ($arg === '-h' || $arg === '--help') {
                 $options->help = true;
+            } elseif ($arg === '--version') {
+                $options->version = true;
             } elseif ($arg === '--ascii') {
                 $options->ascii = true;
             } elseif ($arg === '--autopilot') {
@@ -57,6 +63,7 @@ final class Options
               --bench[=N]  headless benchmark: autopilot plays N seeded games (default 200)
               --ascii      draw with plain ASCII (#, @, o, *) instead of Unicode blocks
               --autopilot  sit back and watch a bot play (keys still work: P, R, Q)
+              --version    show the version
               -h, --help   show this help
 
             Controls: arrows / WASD / hjkl move, P or Space pause, R restart, Q quit.

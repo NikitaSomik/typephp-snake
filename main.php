@@ -24,6 +24,10 @@ function main(int $argc, array $argv): void
         echo Options::usage($program);
         return;
     }
+    if ($options->version) {
+        echo 'snake ', Options::VERSION, "\n";
+        return;
+    }
     if ($options->error !== '') {
         echo $options->error, "\n\n", Options::usage($program);
         exit(2);

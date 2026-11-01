@@ -35,4 +35,9 @@ final class OptionsTest extends TestCase
         self::assertStringContainsString('between 8 and 200', Options::fromArgv(['snake', '--height=3'])->error);
         self::assertStringContainsString('Unknown option', Options::fromArgv(['snake', '--fast'])->error);
     }
+
+    public function testVersion(): void
+    {
+        self::assertTrue(Options::fromArgv(['snake', '--version'])->version);
+    }
 }

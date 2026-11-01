@@ -17,7 +17,7 @@ The same source also runs on the regular PHP interpreter, which makes it a small
 - **Same code on both runtimes.** `bin/snake.php` runs the game on stock PHP through a pure-PHP polyfill of that terminal API. A parity check proves both runtimes play identical games and draw byte-identical frames.
 - **A real game loop.** Fixed-tick simulation, input polled with a deadline (no busy waiting), buffered turns, pause, restart, speed-up, flicker-free full-frame rendering, resize handling and Unicode or ASCII graphics.
 - **Measured, not assumed.** A headless `--bench` mode, a profiling pass and a write-up of what AOT did and did not buy (see [Performance](#performance)).
-- **Tested and checked.** 44 PHPUnit tests for the rules, input parser, options, renderer and autopilot, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it and builds the binary on Linux and macOS.
+- **Tested and checked.** 46 PHPUnit tests for the rules, input parser, options, renderer and autopilot, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it and builds the binary on Linux and macOS.
 
 ## Download
 
@@ -56,6 +56,7 @@ make build      # PHP → C++ → ./snake  (≈20 s the first time, cached after
 | `./snake --ascii` | Plain `#` `@` `o` `*` graphics |
 | `./snake --autopilot` | Watch a bot play |
 | `./snake --bench[=N]` | Headless benchmark with N seeded autopilot games |
+| `./snake --version` | Show the version |
 | `make play-php` | Play the same code on the PHP interpreter |
 | `make autopilot` / `make autopilot-php` | Watch the bot play (native / interpreter) |
 | `make play ARGS="--ascii --width=40"` | Pass any game flags through make |
