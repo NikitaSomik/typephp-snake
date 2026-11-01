@@ -11,7 +11,7 @@
 ```bash
 composer install
 make build        # vendor/bin/tpc.php project.yml --nano -O2  → ./snake
-make test         # PHPUnit (rules, key parser, options, renderer)
+make test         # PHPUnit (rules, key parser, options, renderer, autopilot)
 make analyse      # PHPStan, level max (native/terminal.stub.php is a stub file, not analysed)
 make cs           # PHP-CS-Fixer dry run, PER-CS; make cs-fix applies it
 make parity       # the binary and the interpreter must produce the same checksum
