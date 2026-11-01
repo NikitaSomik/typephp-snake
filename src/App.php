@@ -46,10 +46,17 @@ final class App
     {
         $nextTick = $this->nowMs() + $game->tickIntervalMs();
         $dirty = true;
+        $lastCols = 0;
+        $lastRows = 0;
 
         while (true) {
             $cols = term_cols();
             $rows = term_rows();
+            if ($cols !== $lastCols || $rows !== $lastRows) {
+                $lastCols = $cols;
+                $lastRows = $rows;
+                $dirty = true;
+            }
             if ($dirty) {
                 echo $this->renderer->render($game, $this->best, $cols, $rows);
                 term_flush();
@@ -67,6 +74,7 @@ final class App
 
             $now = $this->nowMs();
             if ($now >= $nextTick) {
+                $stateBefore = $game->state;
                 if (!$this->renderer->fits($game, $cols, $rows) && $game->state === Game::RUNNING) {
                     // Never let the snake run while the board can't be seen.
                     $game->togglePause();
@@ -77,7 +85,10 @@ final class App
                 $game->tick();
                 $this->best = max($this->best, $game->score);
                 $nextTick = $now + $game->tickIntervalMs();
-                $dirty = true;
+                // A paused or finished board stays the same: don't redraw it every tick.
+                if ($game->state === Game::RUNNING || $game->state !== $stateBefore) {
+                    $dirty = true;
+                }
             }
         }
     }
