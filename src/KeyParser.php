@@ -19,6 +19,7 @@ final class KeyParser
     private const int CSI = 91;
     private const int SS3 = 79;
     private const int INCOMPLETE = -1;
+    private const int MAX_PENDING_BYTES = 16;
 
     /** @var list<int<0, 255>> the start of a sequence cut off by the end of a read */
     private array $pending = [];
@@ -48,7 +49,10 @@ final class KeyParser
 
             $end = $this->sequenceEnd($bytes, $i);
             if ($end === self::INCOMPLETE) {
-                $this->pending = array_slice($bytes, $i);
+                // Real sequences are short: anything longer is noise, not worth keeping.
+                if ($count - $i <= self::MAX_PENDING_BYTES) {
+                    $this->pending = array_slice($bytes, $i);
+                }
                 break;
             }
             if ($end > $i) {

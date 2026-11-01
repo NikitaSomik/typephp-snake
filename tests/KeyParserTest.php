@@ -38,6 +38,14 @@ final class KeyParserTest extends TestCase
         self::assertSame($expected, (new KeyParser())->parse($bytes));
     }
 
+    public function testDropsAnEndlessSequence(): void
+    {
+        $parser = new KeyParser();
+
+        self::assertSame([], $parser->parse(array_map(ord(...), str_split("\e[" . str_repeat('1', 100)))));
+        self::assertSame([Key::QUIT], $parser->parse([ord('q')]));
+    }
+
     /** @return iterable<string, array{string, list<int>}> */
     public static function sequences(): iterable
     {
