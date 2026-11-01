@@ -29,6 +29,12 @@ curl -fsSL https://github.com/NikitaSomik/typephp-snake/releases/latest/download
 ./snake-macos-arm64/snake
 ```
 
+Every archive since v1.0.1 carries a build attestation from GitHub. To check that it was built by this repository's release workflow:
+
+```bash
+gh attestation verify snake-macos-arm64.tar.gz --repo NikitaSomik/typephp-snake
+```
+
 The macOS binary is not signed. Downloading it with `curl` as above works as is; if you download it in a browser, macOS blocks it until you run `xattr -d com.apple.quarantine snake`.
 
 ## Quick start
