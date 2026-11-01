@@ -40,6 +40,7 @@ int cached_rows = 24;
 long long size_checked_at = -1'000'000;
 const long long SIZE_CACHE_MS = 500;
 const long long SIZE_QUERY_TIMEOUT_MS = 150;
+const long long MAX_WINDOW_SIZE = 9999;
 
 long long now_ms() {
     struct timespec ts;
@@ -115,7 +116,7 @@ bool query_window_size(int &rows, int &cols) {
             continue;
         }
         if (byte == 'R') {
-            int r = 0, c = 0;
+            long long r = 0, c = 0;
             int i = 2;
             while (i < length && reply[i] != ';') {
                 r = r * 10 + (reply[i++] - '0');
@@ -124,9 +125,10 @@ bool query_window_size(int &rows, int &cols) {
             while (i < length && reply[i] != 'R') {
                 c = c * 10 + (reply[i++] - '0');
             }
-            if (r > 0 && c > 0) {
-                rows = r;
-                cols = c;
+            // Pasted text can look like a report too: never size a frame from a wild value.
+            if (r > 0 && c > 0 && r <= MAX_WINDOW_SIZE && c <= MAX_WINDOW_SIZE) {
+                rows = static_cast<int>(r);
+                cols = static_cast<int>(c);
                 return true;
             }
             return false;
