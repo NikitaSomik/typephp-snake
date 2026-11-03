@@ -2,6 +2,8 @@
 
 The game in `src/` and `main.php` is plain PHP and is the same for every runtime. Each folder here holds only what one runtime needs on top of it: an entry point, the terminal layer, build settings and notes on what does not work there.
 
+<p align="center"><img src="../docs/architecture.svg" alt="Architecture: one shared game, a six-function terminal contract, and one folder per runtime" width="760"></p>
+
 | Folder | Runtime | Status | Entry point |
 |---|---|---|---|
 | [`php/`](php/) | PHP interpreter (and the same file with OPcache JIT) | reference | `php runtimes/php/run.php` |

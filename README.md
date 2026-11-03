@@ -76,35 +76,7 @@ Controls: arrows / WASD / hjkl to move, <kbd>P</kbd> or <kbd>Space</kbd> to paus
 
 The game is written once. Each runtime takes the same PHP files and runs them its own way; only the thin layer that talks to the terminal is different.
 
-```mermaid
-flowchart TB
-    game["<b>The game, written once in PHP</b><br/>main.php + src/<br/>rules, drawing, input, autopilot, benchmarks"]
-
-    game --> php
-    game --> typephp
-    game --> phpr
-    game --> elephc
-
-    php["<b>PHP</b><br/>reads the code and runs it,<br/>optionally with JIT"]
-    typephp["<b>TypePHP</b><br/>translates it to C++ and<br/>builds a native binary"]
-    phpr["<b>php-rust</b><br/>a PHP interpreter<br/>written in Rust"]
-    elephc["<b>elephc</b><br/>compiles it straight<br/>to machine code"]
-
-    php --> tphp["terminal.php<br/>uses stty"]
-    typephp --> ttp["terminal.cc<br/>hand-written C++"]
-    phpr --> tphpr["terminal.php<br/>works around buffered output"]
-    elephc --> tel["no terminal yet:<br/>benchmarks only"]
-
-    tphp --> bench
-    ttp --> bench
-    tphpr --> bench
-    tel --> bench
-
-    bench(["<b>make bench</b><br/>one table, same checksum for all"])
-
-    classDef experimental stroke-dasharray: 5 5
-    class phpr,elephc,tphpr,tel experimental
-```
+<p align="center"><img src="docs/architecture.svg" alt="Architecture: the shared game (Snake\Cli, Benchmark + Fib, App) talks to the terminal through six functions; PHP, TypePHP, php-rust and elephc each implement them in their own folder, and make bench compares all of them" width="760"></p>
 
 Dashed boxes are experimental. The game reaches the terminal only through six functions (`term_raw_on`, `term_read_byte`, `term_flush`, …), so a new runtime needs a few dozen lines of glue, not a fork of the game. [`runtimes/README.md`](runtimes/README.md) describes that contract and the rules for what goes where.
 

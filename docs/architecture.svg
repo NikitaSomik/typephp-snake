@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" width="760" height="560" role="img" aria-label="One game, four runtimes: each runtime adds only its own terminal layer" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13">
+  <style>
+    .bg { fill: #ffffff; }
+    .ink { fill: #1f2328; }
+    .quiet { fill: #59636e; }
+    .box { fill: #ffffff; stroke: #8c959f; stroke-width: 1.25; }
+    .core { fill: #f6f8fa; stroke: #8c959f; stroke-width: 1.25; }
+    .accent { fill: #ddf4ff; stroke: #0969da; stroke-width: 2; }
+    .exp { fill: #ffffff; stroke: #8c959f; stroke-width: 1.25; stroke-dasharray: 5 4; }
+    .line { fill: none; stroke: #8c959f; stroke-width: 1.25; }
+    .head { fill: #8c959f; }
+    .result { fill: #dafbe1; stroke: #1a7f37; stroke-width: 1.5; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .ink { fill: #e6edf3; }
+      .quiet { fill: #9198a1; }
+      .box, .exp { fill: #0d1117; stroke: #6e7681; }
+      .core { fill: #161b22; stroke: #6e7681; }
+      .accent { fill: #0c2d6b; stroke: #4493f8; }
+      .line { stroke: #6e7681; }
+      .head { fill: #6e7681; }
+      .result { fill: #04260f; stroke: #3fb950; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path class="head" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="760" height="560" rx="12"/>
+
+  <text class="ink" x="24" y="34" font-size="16" font-weight="600">One game, four runtimes: each one adds only its terminal layer</text>
+
+  <!-- shared core -->
+  <rect class="core" x="24" y="52" width="712" height="200" rx="10"/>
+  <text class="ink" x="40" y="76" font-weight="600">The game, written once in PHP: main.php + src/</text>
+  <text class="quiet" x="720" y="76" text-anchor="end" font-size="11.5">shared by every runtime</text>
+
+  <rect class="box" x="230" y="92" width="300" height="56" rx="8"/>
+  <text class="ink" x="380" y="116" text-anchor="middle" font-weight="600">Snake\Cli</text>
+  <text class="quiet" x="380" y="134" text-anchor="middle" font-size="11.5">command line → benchmark or game</text>
+
+  <rect class="box" x="48" y="180" width="300" height="56" rx="8"/>
+  <text class="ink" x="198" y="204" text-anchor="middle" font-weight="600">Benchmark + Fib</text>
+  <text class="quiet" x="198" y="222" text-anchor="middle" font-size="11.5">--bench, --bench-fib: no terminal needed</text>
+
+  <rect class="box" x="412" y="180" width="300" height="56" rx="8"/>
+  <text class="ink" x="562" y="204" text-anchor="middle" font-weight="600">App: the interactive game</text>
+  <text class="quiet" x="562" y="222" text-anchor="middle" font-size="11.5">Game, Snake, Renderer, KeyParser, Autopilot</text>
+
+  <path class="line" d="M380 148V164H198V180" marker-end="url(#arrow)"/>
+  <path class="line" d="M380 148V164H562V180" marker-end="url(#arrow)"/>
+  <path class="line" d="M562 236V284" marker-end="url(#arrow)"/>
+
+  <!-- contract -->
+  <rect class="accent" x="24" y="284" width="712" height="48" rx="10"/>
+  <text class="ink" x="380" y="304" text-anchor="middle" font-weight="600">The terminal contract: six functions</text>
+  <text class="quiet" x="380" y="321" text-anchor="middle" font-size="11.5">term_raw_on · term_raw_off · term_read_byte · term_cols · term_rows · term_flush</text>
+
+  <!-- runtimes -->
+  <path class="line" d="M107 332V364" marker-end="url(#arrow)"/>
+  <path class="line" d="M289 332V364" marker-end="url(#arrow)"/>
+  <path class="line" d="M471 332V364" marker-end="url(#arrow)"/>
+  <path class="line" d="M653 332V364" marker-end="url(#arrow)"/>
+
+  <rect class="box" x="24" y="364" width="166" height="104" rx="8"/>
+  <text class="ink" x="107" y="388" text-anchor="middle" font-weight="600">PHP (± JIT)</text>
+  <text class="quiet" x="107" y="406" text-anchor="middle" font-size="11.5">interpreter, written in C</text>
+  <text class="quiet" x="107" y="430" text-anchor="middle" font-size="11.5">runtimes/php/</text>
+  <text class="quiet" x="107" y="446" text-anchor="middle" font-size="11.5">terminal.php: stty</text>
+  <text class="ink" x="107" y="462" text-anchor="middle" font-size="11">reference</text>
+
+  <rect class="box" x="206" y="364" width="166" height="104" rx="8"/>
+  <text class="ink" x="289" y="388" text-anchor="middle" font-weight="600">TypePHP</text>
+  <text class="quiet" x="289" y="406" text-anchor="middle" font-size="11.5">PHP → C++ → binary</text>
+  <text class="quiet" x="289" y="430" text-anchor="middle" font-size="11.5">runtimes/typephp/</text>
+  <text class="quiet" x="289" y="446" text-anchor="middle" font-size="11.5">terminal.cc: termios</text>
+  <text class="ink" x="289" y="462" text-anchor="middle" font-size="11">primary</text>
+
+  <rect class="exp" x="388" y="364" width="166" height="104" rx="8"/>
+  <text class="ink" x="471" y="388" text-anchor="middle" font-weight="600">php-rust (phpr)</text>
+  <text class="quiet" x="471" y="406" text-anchor="middle" font-size="11.5">interpreter, written in Rust</text>
+  <text class="quiet" x="471" y="430" text-anchor="middle" font-size="11.5">runtimes/phpr/</text>
+  <text class="quiet" x="471" y="446" text-anchor="middle" font-size="11.5">terminal.php + workarounds</text>
+  <text class="ink" x="471" y="462" text-anchor="middle" font-size="11">experimental</text>
+
+  <rect class="exp" x="570" y="364" width="166" height="104" rx="8"/>
+  <text class="ink" x="653" y="388" text-anchor="middle" font-weight="600">elephc</text>
+  <text class="quiet" x="653" y="406" text-anchor="middle" font-size="11.5">PHP → machine code</text>
+  <text class="quiet" x="653" y="430" text-anchor="middle" font-size="11.5">runtimes/elephc/</text>
+  <text class="quiet" x="653" y="446" text-anchor="middle" font-size="11.5">stub: benchmarks only</text>
+  <text class="ink" x="653" y="462" text-anchor="middle" font-size="11">experimental</text>
+
+  <!-- comparison -->
+  <path class="line" d="M107 468V492H653V468"/>
+  <path class="line" d="M289 468V492"/>
+  <path class="line" d="M471 468V492"/>
+  <path class="line" d="M380 492V504" marker-end="url(#arrow)"/>
+  <rect class="result" x="210" y="504" width="340" height="40" rx="10"/>
+  <text class="ink" x="380" y="529" text-anchor="middle" font-weight="600">make bench: one table, same checksum for all</text>
+</svg>
