@@ -10,7 +10,7 @@ runtimes/elephc/snake --bench-fib
 bench/parity.sh elephc                     # same games and results as php?
 ```
 
-`snake.php` is the entry point. elephc compiles one file and resolves `require` at compile time, so it requires the game's source files one by one instead of using Composer's autoloader, and calls `Snake\Cli::run()` instead of `main()`. The binary is written next to it as `runtimes/elephc/snake` (ignored by git).
+`snake.php` is the entry point. elephc compiles one file and resolves `require` at compile time, so it requires the game's source files one by one instead of using Composer's autoloader, and calls `Snake\Cli::run()` instead of `main()`. The binary is written next to it as `runtimes/elephc/snake` (ignored by git). **When you add a file to `src/`, add a `require` for it to `snake.php` too**, in dependency order, or the elephc build breaks.
 
 ## Status
 
