@@ -154,12 +154,17 @@ jobs:
 
       - run: composer install --no-interaction --no-progress
 
+      # Pinned: reproducible numbers, and no unauthenticated GitHub API lookup
+      # for "latest" (it hits the rate limit on shared runners).
       - name: Install elephc
+        env:
+          ELVM_VERSION: "0.2.1"
+          ELEPHC_VERSION: "0.27.6"
         run: |
           curl -fsSL https://get.elephc.dev | sh -s -- --no-modify-path
           echo "$HOME/.elvm/bin" >> "$GITHUB_PATH"
-          "$HOME/.elvm/bin/elvm" install latest
-          "$HOME/.elvm/bin/elvm" use latest --global
+          "$HOME/.elvm/bin/elvm" install "$ELEPHC_VERSION"
+          "$HOME/.elvm/bin/elvm" use "$ELEPHC_VERSION" --global
           "$HOME/.elvm/bin/elephc" --version
 
       - name: Compile with elephc
