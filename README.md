@@ -1,7 +1,7 @@
 # typephp-snake
 
 **Terminal Snake written once in modern typed PHP (8.4+) and run on several PHP runtimes and compilers, side by side.**
-The main build is a ~2 MB standalone native binary made with [TypePHP](https://github.com/swoole/typephp). The very same source also runs on the PHP interpreter, on [php-rust](runtimes/phpr/) and through the [elephc](https://elephc.dev) compiler, which makes it a small but honest testbed for comparing them.
+The main build is a ~2 MB standalone native binary made with [TypePHP](https://github.com/swoole/typephp). The very same source also runs on the PHP interpreter and on [php-rust](runtimes/phpr/), and its benchmarks compile with [elephc](https://elephc.dev), which makes it a small but honest testbed for comparing them.
 
 [![CI](https://github.com/NikitaSomik/typephp-snake/actions/workflows/ci.yml/badge.svg)](https://github.com/NikitaSomik/typephp-snake/actions/workflows/ci.yml)
 ![PHP 8.4–8.5](https://img.shields.io/badge/PHP-8.4%E2%80%938.5-777bb4)
@@ -13,11 +13,11 @@ The main build is a ~2 MB standalone native binary made with [TypePHP](https://g
 
 ## Highlights
 
-- **One game, several runtimes.** The game is written once in plain PHP. Each runtime gets only a small folder in [`runtimes/`](runtimes/) with its entry point and terminal layer, and the game code never changes for one of them.
+- **One game, several runtimes.** The game is written once in plain PHP. Each runtime gets only a small folder in [`runtimes/`](runtimes/) with its entry point and terminal layer; the game code has no runtime-specific branches.
 - **Compared honestly.** `make bench` runs two workloads on every runtime it finds and prints one table. A checksum proves each runtime played the same games and computed the same result, so the numbers compare like with like (see [Performance](#performance)).
 - **One binary, zero runtime dependencies.** TypePHP's `--nano` mode needs no `libphp`, no Zend VM and no PHP on the target machine. `otool -L snake` shows only `libc++` and `libSystem`.
 - **A real game loop.** Fixed-tick simulation, input polled with a deadline (no busy waiting), buffered turns, pause, restart, speed-up, flicker-free full-frame rendering, resize handling and Unicode or ASCII graphics.
-- **Tested and checked.** PHPUnit tests for the rules, input parser, options, renderer and autopilot, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it, builds the binary on Linux and macOS and checks elephc as an experiment.
+- **Tested and checked.** PHPUnit tests for the rules, snake body, input parser, options, renderer and autopilot, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it, builds the binary on Linux and macOS and checks elephc as an experiment.
 
 ## Download
 
@@ -63,7 +63,7 @@ make bench      # compare every runtime installed on this machine
 | `make build-elephc` | Compile the benchmarks with elephc into `runtimes/elephc/snake` |
 | `make autopilot` / `make autopilot-php` | Watch the bot play (native / interpreter) |
 | `make play ARGS="--ascii --width=40"` | Pass any game flags through make |
-| `make bench` | Compare all available runtimes in one table (`RUNTIMES="php typephp"` to pick, `SAVE=1` to keep it) |
+| `make bench` | Compare all available runtimes in one table (`RUNTIMES="php typephp"` to pick, `GAMES=`, `RUNS=`, `FIB=` to size it, `SAVE=1` to keep it). With elephc built, add `GAMES=50`: 200 games take it hours |
 | `make parity` | Check that every available runtime plays identical games |
 | `make test` | PHPUnit |
 | `make analyse` | PHPStan at level max |
@@ -93,7 +93,7 @@ flowchart LR
 ```
 
 - `project.yml` lists the sources; `tpc project.yml --nano -O2` builds everything.
-- TypePHP binaries start at a global `main(int $argc, array $argv)`. Top-level code is not allowed, which suits a game loop well, and every other runtime calls the same `main()`.
+- TypePHP binaries start at a global `main(int $argc, array $argv)`. Top-level code is not allowed, which suits a game loop well. The interpreters call the same `main()`; elephc reserves that name, so its entry point calls `Snake\Cli::run()` directly.
 - A C++ function named `php_term_read_byte` becomes the PHP function `term_read_byte()` once it is declared in a `.stub.php` file.
 - PHP Nano contains no processes or signals, which rules out `stty`, `pcntl` and `posix`, and its link-time audit rejects `poll`, `select` and `ioctl`. So the terminal layer is C++: keys come from a non-blocking `read()` with short sleeps, the window size from asking the terminal for the cursor position (`ESC[999;999H ESC[6n` → `ESC[rows;colsR`), and Ctrl+C is read as byte `0x03` in raw mode instead of arriving as a signal.
 
@@ -116,6 +116,7 @@ flowchart LR
 │   ├── phpr/                 run.php + terminal.php with php-rust workarounds
 │   └── elephc/               snake.php (single-file entry) + a stub terminal
 ├── bench/                    run.sh (the table), parity.sh (checksums), results/
+├── docs/                     architecture.svg and the demo animation
 ├── tests/                    PHPUnit, plus tests/tty/smoke.py that plays the game in a pseudo-terminal
 └── project.yml               TypePHP build configuration
 ```

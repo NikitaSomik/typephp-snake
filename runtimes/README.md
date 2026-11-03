@@ -41,7 +41,7 @@ When a runtime cannot handle some PHP feature, in this order:
 
 ## Adding a runtime
 
-1. Create `runtimes/<name>/` with an entry point that calls `main($argc, $argv)` and a `terminal.php` (a stub is fine to start).
+1. Create `runtimes/<name>/` with an entry point that calls `main($argc, $argv)` (or `Snake\Cli::run($argv)` if the runtime reserves `main()`, as elephc does) and a `terminal.php` (a stub is fine to start).
 2. Add the runtime to `bench/runtimes.sh` (how to start it, its version, an install hint).
 3. Run `bench/parity.sh <name>` until the checksums match, then `make bench`.
 4. Write down what did not work in `runtimes/<name>/README.md`.

@@ -5,7 +5,7 @@
 //
 // elephc compiles one file and resolves `require` at compile time, so the game
 // is pulled in file by file here instead of through Composer's autoloader.
-// Build: elephc runtimes/elephc/snake.php  →  runtimes/elephc/snake
+// Build: make build-elephc  →  runtimes/elephc/snake (it also sets the heap size)
 
 require __DIR__ . '/terminal.php';
 require __DIR__ . '/../../src/RandomSource.php';

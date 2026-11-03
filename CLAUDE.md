@@ -11,12 +11,12 @@
 ```bash
 composer install
 make build        # vendor/bin/tpc.php project.yml --nano -O2  → ./snake
-make test         # PHPUnit (rules, key parser, options, renderer, autopilot)
+make test         # PHPUnit (rules, snake body, key parser, options, renderer, autopilot)
 make analyse      # PHPStan, level max (runtimes/typephp/native/terminal.stub.php is a stub file, not analysed)
 make cs           # PHP-CS-Fixer dry run, PER-CS; make cs-fix applies it
 make parity       # bench/parity.sh: every available runtime must match php's checksums (RUNTIMES="typephp")
 make smoke        # tests/tty/smoke.py: play both versions in a pseudo-terminal (turn, pause, game over, restart, quit)
-make bench        # bench/run.sh: every available runtime, both workloads, one Markdown table (SAVE=1 → bench/results/)
+make bench        # bench/run.sh: every available runtime, both workloads, one Markdown table (SAVE=1 → bench/results/; GAMES=50 when elephc is built, its rendering slows down over a run)
 make play-php     # the same game on the interpreter (runtimes/php)
 make play-phpr    # the same game on php-rust (runtimes/phpr; PHPR=/path/to/phpr)
 make build-elephc # elephc runtimes/elephc/snake.php → runtimes/elephc/snake (benchmarks only)
@@ -54,6 +54,15 @@ Bump `Options::VERSION` and `version` in `project.yml`, then push a tag `vX.Y.Z`
 - In hot loops, cast array elements to their type: `(int) $grid[$i]` — otherwise the variable becomes `php::Var`. Check the result in `build/src/*.cc`.
 - `#[\Native]` classes are not usable yet: `$this->method($arg)` does not compile, native objects can't be passed to regular classes or interfaces, and static methods and array storage are not allowed.
 - `ArrayAccess` + `??=` and `count()` with spreads in arrays are known compiler bugs — avoid them.
+
+## elephc constraints (verified with 0.27.6)
+
+CI builds elephc with `continue-on-error`, so a break there does not turn a pull request red: check the elephc job after touching `src/`. Details in `runtimes/elephc/README.md`.
+
+- No `strspn()`; a null check does not narrow a nullable value for the rest of an `&&` (pass `?Point` and handle null inside).
+- No `unset()` of an element of an array property: unset on a local copy and assign it back.
+- `main()` is reserved by elephc; its entry point calls `Snake\Cli::run()`.
+- The default heap is 8 MB; `make build-elephc` sets `--heap-size` (1 GB on Linux, 256 MB on macOS, where 1 GB fails to load).
 
 ## Style
 
