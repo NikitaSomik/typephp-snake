@@ -129,19 +129,21 @@ flowchart LR
 
 Both print a checksum line, and every runtime must match the PHP interpreter. Runtimes are compared on two workloads because a compiler can win one by a wide margin and lose the other.
 
-Apple M1 Pro, PHP 8.5.7, Apple clang 21, TypePHP `master@a178223`, `-O2`:
+Apple M1 Pro, macOS 27.0.1, PHP 8.5.12, TypePHP `master@a178223` with `-O2`, php-rust `72f688c3`, elephc 0.27.6; median of 3 runs, 3 November 2026 (raw output: [main run](bench/results/MacBookPro-2026-11-03.md), [elephc](bench/results/MacBookPro-2026-11-03-elephc.md)). Every runtime in the table produced the same checksums as the PHP interpreter.
 
 | Runtime | Rules only | Rules + render | fib(32) |
 |---|---:|---:|---:|
-| PHP 8.5 interpreter | 207 k ticks/s | 45 k ticks/s | 0.167 s |
-| PHP 8.5 + OPcache JIT | **387 k ticks/s** | **99 k ticks/s** | 0.048 s |
-| TypePHP native binary | 113 k ticks/s | 34 k ticks/s | **0.012 s** |
-| php-rust | not measured yet | | |
-| elephc | not measured here yet ([first CI run](runtimes/elephc/README.md#first-results): plays identical games, but much slower) | | |
-
-The fib(32) times above come from an earlier standalone script; the next `make bench SAVE=1` run on this machine replaces the whole table, php-rust and elephc included.
+| PHP 8.5 interpreter | 201 k ticks/s | 44 k ticks/s | 0.212 s |
+| PHP 8.5 + OPcache JIT | **370 k ticks/s** | **96 k ticks/s** | 0.061 s |
+| TypePHP native binary | 107 k ticks/s | 34 k ticks/s | **0.009 s** |
+| php-rust | 18 k ticks/s | 5 k ticks/s | 1.181 s |
+| elephc | 57 k ticks/s | ≈0.1 k ticks/s (50 games, see below) | 0.400 s |
 
 **What this shows.** TypePHP is very fast when the compiler can prove types and lower code to plain C++ (`int64_t`, `double`, direct calls). This game is a different workload: many short-lived objects, PHP arrays and string building. Profiling the binary with `sample` showed most of the time going to `php::Variant` construction and destruction, `zend_hash_*` and `concat_function`. The generated C++ goes through the same Zend runtime routines as the interpreter, plus some temporary zval copies. Most time lands in shared runtime code, so AOT has little to gain here, and the JIT, which specializes the hot loop, comes out ahead.
+
+php-rust plays exactly the same games, but as a young interpreter it is still far behind the reference: about 11× slower than PHP on the rules, 9× with rendering and 6× on fib(32).
+
+elephc compiles to machine code without the Zend engine and also plays exactly the same games. It is about 3.5× slower than PHP on the rules and 2× on fib(32). Its rendering gets slower the more games it plays (564 ticks/s after 10 games, 145 after 40), so its row uses 50 games instead of 200, which would take hours; see [runtimes/elephc](runtimes/elephc/README.md#results).
 
 Changes that helped **both** runtimes, some a lot more for the binary:
 

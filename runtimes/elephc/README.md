@@ -17,17 +17,19 @@ bench/parity.sh elephc                     # same games and results as php?
 - **Benchmarks:** the goal of this first step. CI builds the binary on Linux and macOS and compares its checksums with php (`continue-on-error`, so a failure does not block a pull request).
 - **Interactive play:** not ported yet. `terminal.php` is a stub, so the game exits with a message. elephc lists `shell_exec`, `stream_select` and `ob_start` as supported, so a port of `runtimes/php/terminal.php` or a small C file through elephc's FFI are both options.
 
-## First results
+## Results
 
-On a shared GitHub Actions runner (Linux x86_64, `--bench=20`, `--bench-fib=25`), elephc plays exactly the same games as PHP (`bench/parity.sh elephc` passes), but it is the slowest runtime here so far:
+On an Apple M1 Pro (elephc 0.27.6, 3 November 2026, median of 3 runs), elephc plays exactly the same games as PHP (`bench/parity.sh elephc` passes):
 
-| | PHP 8.5 interpreter (same runner type) | elephc 0.27.6 |
+| | PHP 8.5 interpreter | elephc 0.27.6 |
 |---|---:|---:|
-| Rules only | ≈360 k ticks/s | 55 k ticks/s |
-| Rules + render | ≈63 k ticks/s | 0.3 k ticks/s (29 s for 20 games) |
-| fib(25) | ≈0.005 s | 0.016 s |
+| Rules only | 205 k ticks/s | 57 k ticks/s |
+| Rules + render (50 games) | 44 k ticks/s | ≈0.1 k ticks/s |
+| fib(32) | 0.207 s | 0.400 s |
 
-Rendering builds each frame as one long string, which looks like elephc's weak spot. Because of that, a full `make bench` (200 games, 3 runs) takes about 15 minutes on elephc; `make bench GAMES=20` is enough for a first look. These numbers come from one CI run and are rough; measure on a quiet machine before drawing conclusions.
+The rules run at a steady ~55 k ticks/s, but **rendering slows down as games accumulate**: single runs of `--bench=N` gave 564 ticks/s for 10 games, 347 for 20 and 145 for 40, with memory steady at about 89 MB. Rendering builds each frame as one long string, so something in elephc's runtime seems to grow with the number of strings created. A full `make bench` (200 games) would take hours; use `make bench GAMES=50` or fewer. Raw output: [bench/results/MacBookPro-2026-11-03-elephc.md](../../bench/results/MacBookPro-2026-11-03-elephc.md).
+
+An earlier CI run on a shared GitHub Actions runner (Linux x86_64, `--bench=20`, `--bench-fib=25`) showed the same picture: 55 k ticks/s for the rules, 0.3 k ticks/s with rendering and 0.016 s for fib(25), against ≈360 k, ≈63 k and ≈0.005 s for PHP.
 
 ## Known limits
 
