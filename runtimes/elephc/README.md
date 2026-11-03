@@ -26,4 +26,5 @@ Found with elephc 0.27.6 (November 2026). Each workaround is harmless for the ot
 | A null check does not narrow a nullable property or variable for the rest of an `&&`: `$this->food !== null && $next->equals($this->food)` is rejected (*expects Snake\Point, got Snake\Point\|null*). | `Point::equals()` accepts `?Point` and returns false for null |
 | `strspn()` is not available (*Undefined function*). | `Options::isDigits()`, a plain loop over `ord()` |
 | A user function named `main()` clashes with elephc's own entry point (*call to main with 2 args for 0 params*). | `main.php` delegates to `Snake\Cli::run()`, which `snake.php` calls directly |
+| The default heap is 8 MB and is not grown: the game benchmark stops with *Fatal error: heap memory exhausted*. | `make build-elephc` passes `--heap-size=1073741824` (1 GB) |
 | `unset()` of an element of an array property fails in the backend (*unsupported EIR backend feature: unset target shape*). | `Snake::advance()` unsets on a local copy and assigns it back |

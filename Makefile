@@ -1,6 +1,8 @@
 PHP    ?= php
 PHPR   ?= phpr
 ELEPHC ?= elephc
+# elephc's default heap is 8 MB; the game benchmark needs far more.
+ELEPHC_FLAGS ?= --heap-size=1073741824
 TPC     = $(PHP) vendor/bin/tpc.php
 BIN     = snake
 # Extra game flags, e.g. make play ARGS="--ascii --width=40"
@@ -25,7 +27,7 @@ build: vendor
 
 ## elephc: PHP → native code without the Zend engine → runtimes/elephc/snake (benchmarks only).
 build-elephc:
-	$(ELEPHC) runtimes/elephc/snake.php
+	$(ELEPHC) $(ELEPHC_FLAGS) runtimes/elephc/snake.php
 
 ## Play: native binary (TypePHP) / PHP interpreter / php-rust.
 play: build
