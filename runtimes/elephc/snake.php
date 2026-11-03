@@ -24,7 +24,9 @@ require __DIR__ . '/../../src/Fib.php';
 require __DIR__ . '/../../src/Benchmark.php';
 require __DIR__ . '/../../src/Options.php';
 require __DIR__ . '/../../src/App.php';
-require __DIR__ . '/../../main.php';
+require __DIR__ . '/../../src/Cli.php';
 
+// Not main.php: elephc reserves main() for its own entry point, so the
+// program calls Snake\Cli directly.
 /** @var list<string> $argv */
-main(count($argv), $argv);
+exit(Snake\Cli::run($argv));

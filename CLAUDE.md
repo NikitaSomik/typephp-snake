@@ -32,7 +32,7 @@ Bump `Options::VERSION` and `version` in `project.yml`, then push a tag `vX.Y.Z`
 
 ## Architecture
 
-- `main.php` — global `main(int $argc, array $argv)`; TypePHP does not allow top-level code.
+- `main.php` — global `main(int $argc, array $argv)`; TypePHP does not allow top-level code. It only calls `Snake\Cli::run()` (options → benchmark or game), which elephc calls directly because it reserves `main()`.
 - `src/` — plain PHP with no terminal dependencies, shared by every runtime: `Game` (rules), `Snake` (body as packed int cells), `Renderer` (a frame as one ANSI string), `KeyParser`, `App` (game loop), `Autopilot`, `Benchmark`, `Fib`.
 - `runtimes/<name>/` — everything specific to one runtime: entry point, terminal layer, a README with its known limits. The terminal contract is the six functions in `runtimes/typephp/native/terminal.stub.php`.
 - `runtimes/typephp/native/terminal.cc` — termios raw mode, non-blocking `read()` + `nanosleep` for keys, a cursor position report (`ESC[6n`) for the window size. The C++ function `php_foo` is the PHP function `foo()`.

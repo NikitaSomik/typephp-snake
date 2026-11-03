@@ -126,7 +126,7 @@ flowchart LR
 - PHP Nano contains no processes or signals, which rules out `stty`, `pcntl` and `posix`, and its link-time audit rejects `poll`, `select` and `ioctl`. So the terminal layer is C++: keys come from a non-blocking `read()` with short sleeps, the window size from asking the terminal for the cursor position (`ESC[999;999H ESC[6n` → `ESC[rows;colsR`), and Ctrl+C is read as byte `0x03` in raw mode instead of arriving as a signal.
 
 ```
-├── main.php                  entry point: options → benchmark or interactive game
+├── main.php                  global main() for TypePHP and the interpreters → Snake\Cli
 ├── src/                      the game, shared by every runtime
 │   ├── Game.php              rules: movement, food, collisions, score, speed, states
 │   ├── Snake.php             body as packed int cells + O(1) occupancy set
@@ -135,6 +135,7 @@ flowchart LR
 │   ├── App.php               game loop with deadline-based input polling
 │   ├── Autopilot.php         greedy bot used by --autopilot and --bench
 │   ├── Benchmark.php         headless, seeded, checksummed benchmarks
+│   ├── Cli.php               options → benchmark or interactive game
 │   ├── Fib.php               second workload: recursive fib() on ints
 │   └── …                     Point, Cell, Direction, Key, Options, RandomSource
 ├── runtimes/                 one folder per runtime: entry point, terminal layer, notes
