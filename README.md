@@ -165,7 +165,7 @@ Apple M1 Pro, PHP 8.5.7, Apple clang 21, TypePHP `master@a178223`, `-O2`:
 | PHP 8.5 + OPcache JIT | **387 k ticks/s** | **99 k ticks/s** | 0.048 s |
 | TypePHP native binary | 113 k ticks/s | 34 k ticks/s | **0.012 s** |
 | php-rust | not measured yet | | |
-| elephc | not measured yet | | |
+| elephc | not measured here yet ([first CI run](runtimes/elephc/README.md#first-results): plays identical games, but much slower) | | |
 
 The fib(32) times above come from an earlier standalone script; the next `make bench SAVE=1` run on this machine replaces the whole table, php-rust and elephc included.
 

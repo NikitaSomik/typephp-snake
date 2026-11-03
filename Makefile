@@ -1,8 +1,13 @@
 PHP    ?= php
 PHPR   ?= phpr
 ELEPHC ?= elephc
-# elephc's default heap is 8 MB; the game benchmark needs far more.
+# elephc's default heap is 8 MB; the game benchmark needs far more. On macOS a
+# 1 GB heap stops the binary from loading (dyld cannot map the shared cache).
+ifeq ($(shell uname -s),Darwin)
+ELEPHC_FLAGS ?= --heap-size=268435456
+else
 ELEPHC_FLAGS ?= --heap-size=1073741824
+endif
 TPC     = $(PHP) vendor/bin/tpc.php
 BIN     = snake
 # Extra game flags, e.g. make play ARGS="--ascii --width=40"

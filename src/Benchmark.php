@@ -43,7 +43,7 @@ final class Benchmark
         $seconds = (hrtime(true) - $start) / 1e9;
 
         return sprintf("Fib benchmark: recursive fib(%d) on ints\n", $n)
-            . sprintf("%-15s %8.3f s\n", 'fib:', $seconds)
+            . sprintf("%-15s %8.4f s\n", 'fib:', $seconds)
             . sprintf("checksum: fib=%d\n", $result);
     }
 
