@@ -64,8 +64,8 @@ for rt in $runtimes; do
     d=$(printf '%s' "$render" | median)
     f=$(printf '%s' "$fib" | median)
     rows+=$(printf '| %s | %s | %s | %s | %s | %s |' "$rt" "$(runtime_version "$rt")" \
-        "$( [ -n "$r" ] && awk -v v="$r" 'BEGIN { printf "%.0f k", v / 1000 }' )" \
-        "$( [ -n "$d" ] && awk -v v="$d" 'BEGIN { printf "%.0f k", v / 1000 }' )" \
+        "$( [ -n "$r" ] && awk -v v="$r" 'BEGIN { f = v < 10000 ? "%.1f k" : "%.0f k"; printf f, v / 1000 }' )" \
+        "$( [ -n "$d" ] && awk -v v="$d" 'BEGIN { f = v < 10000 ? "%.1f k" : "%.0f k"; printf f, v / 1000 }' )" \
         "$( [ -n "$f" ] && echo "$f s" )" "$check")$'\n'
 done
 
