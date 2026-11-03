@@ -18,6 +18,8 @@ final class Options
     public bool $version = false;
     /** Number of autopilot games to simulate; 0 means play interactively. */
     public int $benchGames = 0;
+    /** Argument of the recursive fib() benchmark; 0 means do not run it. */
+    public int $fibN = 0;
     public string $error = '';
 
     /** @param array<int, string> $argv */
@@ -39,6 +41,10 @@ final class Options
                 $options->benchGames = 200;
             } elseif (str_starts_with($arg, '--bench=')) {
                 $options->benchGames = $options->number(substr($arg, 8), '--bench', 1, 100000);
+            } elseif ($arg === '--bench-fib') {
+                $options->fibN = 32;
+            } elseif (str_starts_with($arg, '--bench-fib=')) {
+                $options->fibN = $options->number(substr($arg, 12), '--bench-fib', 1, 40);
             } elseif (str_starts_with($arg, '--width=')) {
                 $options->width = $options->number(substr($arg, 8), '--width', self::MIN_SIZE, self::MAX_SIZE);
             } elseif (str_starts_with($arg, '--height=')) {
@@ -54,27 +60,44 @@ final class Options
     public static function usage(string $program): string
     {
         return <<<TXT
-            Terminal Snake — written in PHP, compiled to a native binary by TypePHP.
+            Terminal Snake — written in PHP, one source for several PHP runtimes and compilers.
 
             Usage: {$program} [options]
 
-              --width=N    board width in cells  (default 24, 8..200)
-              --height=N   board height in cells (default 16, 8..200)
-              --bench[=N]  headless benchmark: autopilot plays N seeded games (default 200)
-              --ascii      draw with plain ASCII (#, @, o, *) instead of Unicode blocks
-              --autopilot  sit back and watch a bot play (keys still work: P, R, Q)
-              --version    show the version
-              -h, --help   show this help
+              --width=N        board width in cells  (default 24, 8..200)
+              --height=N       board height in cells (default 16, 8..200)
+              --bench[=N]      headless benchmark: autopilot plays N seeded games (default 200)
+              --bench-fib[=N]  headless benchmark: recursive fib(N) on ints (default 32)
+              --ascii          draw with plain ASCII (#, @, o, *) instead of Unicode blocks
+              --autopilot      sit back and watch a bot play (keys still work: P, R, Q)
+              --version        show the version
+              -h, --help       show this help
 
             Controls: arrows / WASD / hjkl move, P or Space pause, R restart, Q quit.
 
             TXT;
     }
 
+    /**
+     * A plain loop on purpose: ctype_digit() is not part of PHP Nano (TypePHP)
+     * and strspn() is not available in elephc.
+     */
+    private static function isDigits(string $value): bool
+    {
+        $length = strlen($value);
+        for ($i = 0; $i < $length; $i++) {
+            $byte = ord($value[$i]);
+            if ($byte < 48 || $byte > 57) {
+                return false;
+            }
+        }
+
+        return $length > 0;
+    }
+
     private function number(string $value, string $name, int $min, int $max): int
     {
-        // No ctype_digit(): the ctype extension is not part of PHP Nano.
-        if ($value === '' || strspn($value, '0123456789') !== strlen($value) || strlen($value) > 6) {
+        if (!self::isDigits($value) || strlen($value) > 6) {
             $this->error = "{$name} expects a number, got '{$value}'";
             return $min;
         }

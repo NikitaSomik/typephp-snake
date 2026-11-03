@@ -107,17 +107,73 @@ jobs:
           file snake
           ./snake --help
           ./snake --bench=20
+          ./snake --bench-fib=25
 
-      - name: Native and interpreter play identical games
-        run: make parity
+      - name: Native binary and interpreter play identical games
+        run: bench/parity.sh typephp
 
       - name: Play in a pseudo-terminal (binary and interpreter)
         run: |
           python3 tests/tty/smoke.py ./snake
-          python3 tests/tty/smoke.py php bin/snake.php
+          python3 tests/tty/smoke.py php runtimes/php/run.php
+
+      - name: Benchmark table (informational, numbers from a shared CI runner)
+        run: RUNS=1 GAMES=50 FIB=27 bench/run.sh php php-jit typephp
 
       - uses: actions/upload-artifact@v4
         with:
           name: snake-${{ runner.os }}-${{ runner.arch }}
           path: snake
           if-no-files-found: error
+
+  # Experimental runtimes: CI builds and checks them, but a failure here does not
+  # block a pull request (continue-on-error). php and TypePHP above are the ones
+  # that must stay green. php-rust (phpr) has no CI install yet and runs locally.
+  elephc:
+    name: elephc (experimental) · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: vendor-${{ runner.os }}-php8.5-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --no-progress
+
+      # Pinned: reproducible numbers, and no unauthenticated GitHub API lookup
+      # for "latest" (it hits the rate limit on shared runners).
+      - name: Install elephc
+        env:
+          ELVM_VERSION: "0.2.1"
+          ELEPHC_VERSION: "0.27.6"
+        run: |
+          curl -fsSL https://get.elephc.dev | sh -s -- --no-modify-path
+          echo "$HOME/.elvm/bin" >> "$GITHUB_PATH"
+          "$HOME/.elvm/bin/elvm" install "$ELEPHC_VERSION"
+          "$HOME/.elvm/bin/elvm" use "$ELEPHC_VERSION" --global
+          "$HOME/.elvm/bin/elephc" --version
+
+      - name: Compile with elephc
+        run: make build-elephc
+
+      - name: Benchmarks run
+        run: |
+          runtimes/elephc/snake --bench=20
+          runtimes/elephc/snake --bench-fib=25
+
+      - name: elephc and the interpreter play identical games
+        run: bench/parity.sh elephc

@@ -93,7 +93,7 @@ final class Game
         }
 
         $next = $this->snake->nextHead();
-        $eats = $this->food !== null && $next->equals($this->food);
+        $eats = $next->equals($this->food);
         if (!$this->inside($next) || $this->snake->wouldCollide($next, $eats)) {
             $this->state = self::OVER;
             return;

@@ -1,23 +1,23 @@
 # typephp-snake
 
-**Terminal Snake written in modern typed PHP (8.4+) and compiled ahead-of-time into a ~2 MB standalone native binary with [TypePHP](https://github.com/swoole/typephp).**
-The same source also runs on the regular PHP interpreter, which makes it a small but honest testbed for PHP → C++ → machine code compilation.
+**Terminal Snake written once in modern typed PHP (8.4+) and run on several PHP runtimes and compilers, side by side.**
+The main build is a ~2 MB standalone native binary made with [TypePHP](https://github.com/swoole/typephp). The very same source also runs on the PHP interpreter, on [php-rust](runtimes/phpr/) and through the [elephc](https://elephc.dev) compiler, which makes it a small but honest testbed for comparing them.
 
 [![CI](https://github.com/NikitaSomik/typephp-snake/actions/workflows/ci.yml/badge.svg)](https://github.com/NikitaSomik/typephp-snake/actions/workflows/ci.yml)
 ![PHP 8.4–8.5](https://img.shields.io/badge/PHP-8.4%E2%80%938.5-777bb4)
 ![TypePHP](https://img.shields.io/badge/TypePHP-AOT%20%2B%20Nano-2ea44f)
+![elephc](https://img.shields.io/badge/elephc-experimental-orange)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 <p align="center"><img src="docs/demo.svg" alt="The autopilot playing Snake in the terminal" width="492"></p>
 
 ## Highlights
 
-- **One binary, zero runtime dependencies.** Built with TypePHP's `--nano` mode: no `libphp`, no Zend VM, no PHP on the target machine. `otool -L snake` shows only `libc++` and `libSystem`.
-- **PHP + a pinch of C++.** Game logic, rendering and input parsing are PHP. Raw terminal mode, keyboard input and the window size live in a ~220-line C++ file that PHP calls like normal functions, built only from what PHP Nano allows: `termios`, non-blocking `read()`, `nanosleep` and a cursor position report.
-- **Same code on both runtimes.** `bin/snake.php` runs the game on stock PHP through a pure-PHP polyfill of that terminal API. A parity check proves both runtimes play identical games and draw byte-identical frames.
+- **One game, several runtimes.** The game is written once in plain PHP. Each runtime gets only a small folder in [`runtimes/`](runtimes/) with its entry point and terminal layer, and the game code never changes for one of them.
+- **Compared honestly.** `make bench` runs two workloads on every runtime it finds and prints one table. A checksum proves each runtime played the same games and computed the same result, so the numbers compare like with like (see [Performance](#performance)).
+- **One binary, zero runtime dependencies.** TypePHP's `--nano` mode needs no `libphp`, no Zend VM and no PHP on the target machine. `otool -L snake` shows only `libc++` and `libSystem`.
 - **A real game loop.** Fixed-tick simulation, input polled with a deadline (no busy waiting), buffered turns, pause, restart, speed-up, flicker-free full-frame rendering, resize handling and Unicode or ASCII graphics.
-- **Measured, not assumed.** A headless `--bench` mode, a profiling pass and a write-up of what AOT did and did not buy (see [Performance](#performance)).
-- **Tested and checked.** 46 PHPUnit tests for the rules, input parser, options, renderer and autopilot, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it and builds the binary on Linux and macOS.
+- **Tested and checked.** PHPUnit tests for the rules, input parser, options, renderer and autopilot, a smoke test that plays the game in a pseudo-terminal, PHPStan at level max and the PER-CS coding style. CI runs all of it, builds the binary on Linux and macOS and checks elephc as an experiment.
 
 ## Download
 
@@ -48,6 +48,7 @@ composer install
 
 make build      # PHP → C++ → ./snake  (≈20 s the first time, cached afterwards)
 ./snake         # play
+make bench      # compare every runtime installed on this machine
 ```
 
 | Command | What it does |
@@ -55,81 +56,90 @@ make build      # PHP → C++ → ./snake  (≈20 s the first time, cached after
 | `./snake --width=40 --height=20` | Custom board size (8–200) |
 | `./snake --ascii` | Plain `#` `@` `o` `*` graphics |
 | `./snake --autopilot` | Watch a bot play |
-| `./snake --bench[=N]` | Headless benchmark with N seeded autopilot games |
+| `./snake --bench[=N]` | Headless benchmark: N seeded autopilot games (default 200) |
+| `./snake --bench-fib[=N]` | Headless benchmark: recursive `fib(N)` on ints (default 32) |
 | `./snake --version` | Show the version |
-| `make play-php` | Play the same code on the PHP interpreter |
+| `make play-php` / `make play-phpr` | Play the same code on the PHP interpreter / php-rust |
+| `make build-elephc` | Compile the benchmarks with elephc into `runtimes/elephc/snake` |
 | `make autopilot` / `make autopilot-php` | Watch the bot play (native / interpreter) |
 | `make play ARGS="--ascii --width=40"` | Pass any game flags through make |
+| `make bench` | Compare all available runtimes in one table (`RUNTIMES="php typephp"` to pick, `SAVE=1` to keep it) |
+| `make parity` | Check that every available runtime plays identical games |
 | `make test` | PHPUnit |
 | `make analyse` | PHPStan at level max |
 | `make cs` / `make cs-fix` | Check / fix the PER-CS coding style |
-| `make bench` | Compare PHP, PHP + JIT and the native binary |
-| `make parity` | Check that native and PHP produce identical games |
-| `make smoke` | Play both versions in a pseudo-terminal and check the screen |
+| `make smoke` | Play the binary and the interpreter in a pseudo-terminal and check the screen |
 
 Controls: arrows / WASD / hjkl to move, <kbd>P</kbd> or <kbd>Space</kbd> to pause, <kbd>R</kbd> to restart, <kbd>Q</kbd> or <kbd>Ctrl+C</kbd> to quit.
 
 ## How it works
 
+The game is written once. Each runtime takes the same PHP files and runs them its own way; only the thin layer that talks to the terminal is different.
+
+<p align="center"><img src="docs/architecture.svg" alt="Architecture: the shared game (Snake\Cli, Benchmark + Fib, App) talks to the terminal through six functions; PHP, TypePHP, php-rust and elephc each implement them in their own folder, and make bench compares all of them" width="760"></p>
+
+Dashed boxes are experimental. The game reaches the terminal only through six functions (`term_raw_on`, `term_read_byte`, `term_flush`, …), so a new runtime needs a few dozen lines of glue, not a fork of the game. [`runtimes/README.md`](runtimes/README.md) describes that contract and the rules for what goes where.
+
+### How TypePHP builds the binary
+
 ```mermaid
 flowchart LR
-    subgraph src [Source]
-        PHP["main.php + src/*.php<br/>game, renderer, input"]
-        CPP["native/terminal.cc<br/>termios · read · nanosleep"]
-        STUB["native/terminal.stub.php<br/>function signatures"]
-    end
-    PHP --> TPC["tpc<br/>(TypePHP compiler,<br/>written in PHP)"]
-    STUB --> TPC
-    TPC --> GEN["generated C++17"]
-    GEN --> CC["clang++ / g++"]
-    CPP --> CC
-    NANO["PHP Nano runtime<br/>+ PHPX sources"] --> CC
-    CC --> BIN(["./snake<br/>native executable"])
+    code["Your PHP code<br/>main.php + src/"] --> tpc["tpc<br/>the TypePHP compiler"]
+    tpc --> cpp["C++ code<br/>generated, never edited"]
+    cpp --> cc["clang++ / g++"]
+    term["terminal.cc<br/>hand-written C++"] --> cc
+    nano["PHP Nano<br/>a small PHP runtime"] --> cc
+    cc --> bin(["./snake<br/>one file, no PHP needed"])
 ```
 
 - `project.yml` lists the sources; `tpc project.yml --nano -O2` builds everything.
-- TypePHP binaries start at a global `main(int $argc, array $argv)`. Top-level code is not allowed, which suits a game loop well.
+- TypePHP binaries start at a global `main(int $argc, array $argv)`. Top-level code is not allowed, which suits a game loop well, and every other runtime calls the same `main()`.
 - A C++ function named `php_term_read_byte` becomes the PHP function `term_read_byte()` once it is declared in a `.stub.php` file.
 - PHP Nano contains no processes or signals, which rules out `stty`, `pcntl` and `posix`, and its link-time audit rejects `poll`, `select` and `ioctl`. So the terminal layer is C++: keys come from a non-blocking `read()` with short sleeps, the window size from asking the terminal for the cursor position (`ESC[999;999H ESC[6n` → `ESC[rows;colsR`), and Ctrl+C is read as byte `0x03` in raw mode instead of arriving as a signal.
 
 ```
-├── main.php                  entry point: options → benchmark or interactive game
-├── src/
+├── main.php                  global main() for TypePHP and the interpreters → Snake\Cli
+├── src/                      the game, shared by every runtime
 │   ├── Game.php              rules: movement, food, collisions, score, speed, states
 │   ├── Snake.php             body as packed int cells + O(1) occupancy set
 │   ├── Renderer.php          whole frame → one ANSI string, run-length colored
 │   ├── KeyParser.php         raw bytes → keys (escape sequences, WASD, hjkl)
 │   ├── App.php               game loop with deadline-based input polling
 │   ├── Autopilot.php         greedy bot used by --autopilot and --bench
-│   ├── Benchmark.php         headless, seeded, checksummed benchmark
+│   ├── Benchmark.php         headless, seeded, checksummed benchmarks
+│   ├── Cli.php               options → benchmark or interactive game
+│   ├── Fib.php               second workload: recursive fib() on ints
 │   └── …                     Point, Cell, Direction, Key, Options, RandomSource
-├── native/terminal.cc        raw mode, keyboard, window size (C++)
-├── native/terminal.stub.php  declarations TypePHP binds to the C++ code
-├── polyfill/terminal.php     same API in pure PHP (stty + stream_select)
-├── bin/snake.php             runs the game on the PHP interpreter
+├── runtimes/                 one folder per runtime: entry point, terminal layer, notes
+│   ├── php/                  run.php + terminal.php (stty + stream_select)
+│   ├── typephp/native/       terminal.cc + terminal.stub.php (the terminal contract)
+│   ├── phpr/                 run.php + terminal.php with php-rust workarounds
+│   └── elephc/               snake.php (single-file entry) + a stub terminal
+├── bench/                    run.sh (the table), parity.sh (checksums), results/
 ├── tests/                    PHPUnit, plus tests/tty/smoke.py that plays the game in a pseudo-terminal
 └── project.yml               TypePHP build configuration
 ```
 
 ## Performance
 
-`--bench` runs 200 autopilot games with a fixed seed (99,268 ticks). It times the rules alone, then the rules plus rendering every frame to a string. The checksum line is identical across all runtimes.
+`make bench` runs two workloads on every runtime it finds, each a few times, and reports the median:
+
+1. **The game** (`--bench`): 200 autopilot games with fixed seeds (99,268 ticks), timed for the rules alone and for the rules plus rendering every frame to a string. Many short-lived objects, PHP arrays and string building.
+2. **Pure computation** (`--bench-fib`): a recursive `fib(32)` on plain ints. Only calls and integer arithmetic.
+
+Both print a checksum line, and every runtime must match the PHP interpreter. Runtimes are compared on two workloads because a compiler can win one by a wide margin and lose the other.
 
 Apple M1 Pro, PHP 8.5.7, Apple clang 21, TypePHP `master@a178223`, `-O2`:
 
-| Runtime | Rules only | Rules + render |
-|---|---:|---:|
-| PHP 8.5 interpreter | 207 k ticks/s | 45 k ticks/s |
-| PHP 8.5 + OPcache JIT | **387 k ticks/s** | **99 k ticks/s** |
-| TypePHP native binary | 113 k ticks/s | 34 k ticks/s |
+| Runtime | Rules only | Rules + render | fib(32) |
+|---|---:|---:|---:|
+| PHP 8.5 interpreter | 207 k ticks/s | 45 k ticks/s | 0.167 s |
+| PHP 8.5 + OPcache JIT | **387 k ticks/s** | **99 k ticks/s** | 0.048 s |
+| TypePHP native binary | 113 k ticks/s | 34 k ticks/s | **0.012 s** |
+| php-rust | not measured yet | | |
+| elephc | not measured here yet ([first CI run](runtimes/elephc/README.md#first-results): plays identical games, but much slower) | | |
 
-For comparison, a pure-integer recursive `fib(32)` on the same machine:
-
-| Runtime | Time |
-|---|---:|
-| PHP 8.5 interpreter | 0.167 s |
-| PHP 8.5 + JIT | 0.048 s |
-| TypePHP native binary | **0.012 s** (14× faster than PHP) |
+The fib(32) times above come from an earlier standalone script; the next `make bench SAVE=1` run on this machine replaces the whole table, php-rust and elephc included.
 
 **What this shows.** TypePHP is very fast when the compiler can prove types and lower code to plain C++ (`int64_t`, `double`, direct calls). This game is a different workload: many short-lived objects, PHP arrays and string building. Profiling the binary with `sample` showed most of the time going to `php::Variant` construction and destruction, `zend_hash_*` and `concat_function`. The generated C++ goes through the same Zend runtime routines as the interpreter, plus some temporary zval copies. Most time lands in shared runtime code, so AOT has little to gain here, and the JIT, which specializes the hot loop, comes out ahead.
 
@@ -154,7 +164,7 @@ TypePHP is young, and most of the time here went into finding out what works. Ev
 | The Nano dependency audit rejects `poll`, `select` and `ioctl`, but only on Linux. On macOS it silently checks nothing: it parses the Linux `nm -u` format (`U poll@GLIBC`), while macOS prints a bare `_poll`. The first terminal layer built fine on a Mac and failed in a Linux container. | Keys via non-blocking `read()` + `nanosleep`, window size via a cursor position report; verified in a Linux container |
 | `array_shift($this->queue)` passes the property by reference and leaves it as a PHP reference. The next `$this->queue = []` segfaults inside `zend_try_assign_typed_ref`: the binary crashed when restarting after a turn, while the interpreter was fine. | Read `[0]` and reassign with `array_slice()`; regression tests in PHPUnit and in the pseudo-terminal smoke test |
 | `RuntimeException` (SPL) breaks the link step in selective Nano builds (unresolved PCRE symbols). | Core `Exception` only |
-| Some functions are rejected at compile time in Nano (`getenv`), while others compile but are missing at runtime (`flush`). `ctype` and `mbstring` are absent. | `strspn` instead of `ctype_digit`, a manual UTF-8 width counter, explicit `term_flush()` |
+| Some functions are rejected at compile time in Nano (`getenv`), while others compile but are missing at runtime (`flush`). `ctype` and `mbstring` are absent. | A digit loop instead of `ctype_digit`, a manual UTF-8 width counter, explicit `term_flush()` |
 | `#[\Native]` fixed-layout classes looked like the way to go faster. However, `$this->method($arg)` inside a native class fails to compile (*variable `$this` is undefined*), native objects cannot be passed to non-native classes, interfaces or static methods, and they cannot be array values. | Kept regular classes. The experiment is described here rather than committed. |
 
 ## License

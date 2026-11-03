@@ -32,6 +32,21 @@ final class Benchmark
         );
     }
 
+    /**
+     * Times one call of a naive recursive fib($n). The result doubles as the
+     * checksum: every runtime must print the same number.
+     */
+    public function fib(int $n): string
+    {
+        $start = hrtime(true);
+        $result = Fib::of($n);
+        $seconds = (hrtime(true) - $start) / 1e9;
+
+        return sprintf("Fib benchmark: recursive fib(%d) on ints\n", $n)
+            . sprintf("%-15s %8.4f s\n", 'fib:', $seconds)
+            . sprintf("checksum: fib=%d\n", $result);
+    }
+
     /** @return array{int, int, int} ticks, total score, rendered bytes */
     private function play(int $games, int $width, int $height, bool $render): array
     {

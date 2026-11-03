@@ -10,7 +10,7 @@
  *  - the window size comes from a cursor position report: the cursor is sent
  *    to the far bottom-right corner and the terminal answers ESC[rows;colsR.
  *
- * Every function is exposed to PHP through native/terminal.stub.php; TypePHP
+ * Every function is exposed to PHP through terminal.stub.php next to it; TypePHP
  * maps a C++ `php_<name>` function to the PHP function `<name>`.
  */
 #include <phpx.h>

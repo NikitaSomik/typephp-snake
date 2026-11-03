@@ -14,9 +14,10 @@ final readonly class Point
         return new Point($this->x + Direction::dx($direction), $this->y + Direction::dy($direction));
     }
 
-    public function equals(Point $other): bool
+    /** Accepts null (never equal) so callers need no null check: elephc does not narrow `$x !== null &&`. */
+    public function equals(?Point $other): bool
     {
-        return $this->x === $other->x && $this->y === $other->y;
+        return $other !== null && $this->x === $other->x && $this->y === $other->y;
     }
 
     public function within(int $width, int $height): bool

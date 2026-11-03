@@ -4,7 +4,8 @@ parameters:
         - src
         - tests
         - main.php
-        - bin
-        - polyfill
+        - runtimes/php
+        - runtimes/phpr
+        - runtimes/elephc
     stubFiles:
-        - native/terminal.stub.php
+        - runtimes/typephp/native/terminal.stub.php

@@ -83,7 +83,13 @@ final class Snake
         $head = $this->nextHead()->key();
         if (!$grow) {
             $tail = (int) array_pop($this->body);
-            unset($this->occupied[$tail]);
+            // unset() on a local, not on the property: elephc cannot unset an
+            // element of an array property. Emptying the property first keeps the
+            // array's refcount at 1, so PHP does not copy it.
+            $occupied = $this->occupied;
+            $this->occupied = [];
+            unset($occupied[$tail]);
+            $this->occupied = $occupied;
         }
         array_unshift($this->body, $head);
         $this->occupied[$head] = true;

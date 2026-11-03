@@ -7,7 +7,8 @@ presses keys and reads the frames it draws.
 
 Usage:
     python3 tests/tty/smoke.py ./snake
-    python3 tests/tty/smoke.py php bin/snake.php
+    python3 tests/tty/smoke.py php runtimes/php/run.php
+    python3 tests/tty/smoke.py phpr runtimes/phpr/run.php
 """
 
 import fcntl

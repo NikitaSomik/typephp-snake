@@ -20,7 +20,7 @@ final class Autopilot
                 continue;
             }
             $next = $snake->head()->step($direction);
-            $eats = $food !== null && $next->equals($food);
+            $eats = $next->equals($food);
             if (!$game->inside($next) || $snake->wouldCollide($next, $eats)) {
                 continue;
             }
