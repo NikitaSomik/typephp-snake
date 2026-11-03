@@ -78,10 +78,26 @@ final class Options
             TXT;
     }
 
+    /**
+     * A plain loop on purpose: ctype_digit() is not part of PHP Nano (TypePHP)
+     * and strspn() is not available in elephc.
+     */
+    private static function isDigits(string $value): bool
+    {
+        $length = strlen($value);
+        for ($i = 0; $i < $length; $i++) {
+            $byte = ord($value[$i]);
+            if ($byte < 48 || $byte > 57) {
+                return false;
+            }
+        }
+
+        return $length > 0;
+    }
+
     private function number(string $value, string $name, int $min, int $max): int
     {
-        // No ctype_digit(): the ctype extension is not part of PHP Nano.
-        if ($value === '' || strspn($value, '0123456789') !== strlen($value) || strlen($value) > 6) {
+        if (!self::isDigits($value) || strlen($value) > 6) {
             $this->error = "{$name} expects a number, got '{$value}'";
             return $min;
         }

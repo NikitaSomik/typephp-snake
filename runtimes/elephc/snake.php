@@ -27,4 +27,4 @@ require __DIR__ . '/../../src/App.php';
 require __DIR__ . '/../../main.php';
 
 /** @var list<string> $argv */
-main($argc, $argv);
+main(count($argv), $argv);

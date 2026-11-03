@@ -19,4 +19,9 @@ bench/parity.sh elephc                     # same games and results as php?
 
 ## Known limits
 
-Nothing verified yet. Record each finding here with the elephc version it was reproduced on.
+Found with elephc 0.27.6 (November 2026). Each workaround is harmless for the other runtimes, so it lives in the shared code.
+
+| Finding | Workaround |
+|---|---|
+| A null check does not narrow a nullable property or variable for the rest of an `&&`: `$this->food !== null && $next->equals($this->food)` is rejected (*expects Snake\Point, got Snake\Point\|null*). | `Point::equals()` accepts `?Point` and returns false for null |
+| `strspn()` is not available (*Undefined function*). | `Options::isDigits()`, a plain loop over `ord()` |
