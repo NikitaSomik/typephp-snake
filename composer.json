@@ -1,9 +1,9 @@
 {
     "name": "nikitasomik/typephp-snake",
-    "description": "Terminal Snake written in PHP and compiled to a standalone native binary with TypePHP",
+    "description": "Terminal Snake written in PHP: one source run and compared on several PHP runtimes and compilers (PHP, TypePHP, php-rust, elephc)",
     "type": "project",
     "license": "MIT",
-    "keywords": ["typephp", "aot", "snake", "tui", "terminal", "game"],
+    "keywords": ["typephp", "elephc", "php-rust", "aot", "benchmark", "snake", "tui", "terminal", "game"],
     "require": {
         "php": ">=8.4 <8.6"
     },
@@ -32,8 +32,8 @@
     },
     "scripts": {
         "build": "@php vendor/bin/tpc.php project.yml --nano -O2",
-        "play": "@php bin/snake.php",
-        "bench": "@php bin/snake.php --bench",
+        "play": "@php runtimes/php/run.php",
+        "bench": "bench/run.sh",
         "test": "@php vendor/bin/phpunit",
         "analyse": "@php vendor/bin/phpstan analyse --memory-limit=1G",
         "cs": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",

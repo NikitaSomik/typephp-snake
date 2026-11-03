@@ -1,10 +1,12 @@
 # TypePHP build configuration. Build with:
-#   vendor/bin/tpc.php project.yml --nano -O2
+#   vendor/bin/tpc.php project.yml --nano -O2   (or: make build)
+# The game sources are shared with every runtime; only runtimes/typephp/native
+# (the C++ terminal layer) is specific to TypePHP.
 name: snake
 version: 1.0.1
 mode: bin
 sources:
   - main.php
   - src
-  - native
+  - runtimes/typephp/native
 build-dir: build

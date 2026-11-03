@@ -1,10 +1,17 @@
-PHP ?= php
-TPC  = $(PHP) vendor/bin/tpc.php
-BIN  = snake
+PHP    ?= php
+PHPR   ?= phpr
+ELEPHC ?= elephc
+TPC     = $(PHP) vendor/bin/tpc.php
+BIN     = snake
 # Extra game flags, e.g. make play ARGS="--ascii --width=40"
 ARGS ?=
+# Runtimes for bench and parity, e.g. make bench RUNTIMES="php typephp"
+RUNTIMES ?=
 
-.PHONY: all build play play-php autopilot autopilot-php test analyse cs cs-fix smoke bench parity clean
+export PHP PHPR ELEPHC
+
+.PHONY: all build build-elephc play play-php play-phpr autopilot autopilot-php \
+	test analyse cs cs-fix smoke bench parity clean
 
 all: build
 
@@ -12,24 +19,30 @@ vendor: composer.json composer.lock
 	composer install --no-interaction
 	@touch vendor
 
-## Compile PHP → C++ → a standalone native binary (PHP Nano runtime, no libphp).
+## TypePHP: PHP → C++ → a standalone native binary ./snake (PHP Nano runtime, no libphp).
 build: vendor
 	$(TPC) project.yml --nano -O2
 
-## Play the native binary.
+## elephc: PHP → native code without the Zend engine → runtimes/elephc/snake (benchmarks only).
+build-elephc:
+	$(ELEPHC) runtimes/elephc/snake.php
+
+## Play: native binary (TypePHP) / PHP interpreter / php-rust.
 play: build
 	./$(BIN) $(ARGS)
 
-## Play the same code on the regular PHP interpreter.
 play-php: vendor
-	$(PHP) bin/$(BIN).php $(ARGS)
+	$(PHP) runtimes/php/run.php $(ARGS)
+
+play-phpr: vendor
+	$(PHPR) runtimes/phpr/run.php $(ARGS)
 
 ## Watch the bot play: native binary / PHP interpreter.
 autopilot: build
 	./$(BIN) --autopilot $(ARGS)
 
 autopilot-php: vendor
-	$(PHP) bin/$(BIN).php --autopilot $(ARGS)
+	$(PHP) runtimes/php/run.php --autopilot $(ARGS)
 
 test: vendor
 	$(PHP) vendor/bin/phpunit
@@ -47,23 +60,15 @@ cs-fix: vendor
 ## Play in a pseudo-terminal like a person would: the native binary and the interpreter.
 smoke: build
 	python3 tests/tty/smoke.py ./$(BIN)
-	python3 tests/tty/smoke.py $(PHP) bin/$(BIN).php
+	python3 tests/tty/smoke.py $(PHP) runtimes/php/run.php
 
-## Headless benchmark: PHP interpreter, PHP + JIT, native binary.
-bench: build
-	@echo "== PHP $$($(PHP) -r 'echo PHP_VERSION;') interpreter"
-	@$(PHP) bin/$(BIN).php --bench
-	@echo "== PHP with JIT"
-	@$(PHP) -d opcache.enable_cli=1 -d opcache.jit=on -d opcache.jit_buffer_size=64M bin/$(BIN).php --bench
-	@echo "== native binary (TypePHP)"
-	@./$(BIN) --bench
+## Compare every available runtime on both workloads; SAVE=1 keeps the table in bench/results/.
+bench: vendor
+	bench/run.sh $(RUNTIMES)
 
-## The binary and the interpreter must play identical games and draw identical frames.
-parity: build
-	@native="$$(./$(BIN) --bench=20 | grep checksum)"; \
-	php="$$($(PHP) bin/$(BIN).php --bench=20 | grep checksum)"; \
-	echo "native: $$native"; echo "php:    $$php"; \
-	test "$$native" = "$$php" && echo "parity OK"
+## Every runtime must play identical games and compute identical results.
+parity: vendor
+	bench/parity.sh $(RUNTIMES)
 
 clean:
-	rm -rf build $(BIN) $(BIN).rsp
+	rm -rf build $(BIN) $(BIN).rsp runtimes/elephc/snake

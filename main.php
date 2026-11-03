@@ -11,7 +11,7 @@ use Snake\SystemRandom;
 
 /**
  * Entry point. TypePHP binaries start at a global main() — top-level code is
- * not allowed — and bin/snake.php calls the very same function on regular PHP.
+ * not allowed — and every runtime under runtimes/ calls this very function.
  *
  * @param list<string> $argv
  */
@@ -31,6 +31,10 @@ function main(int $argc, array $argv): void
     if ($options->error !== '') {
         echo $options->error, "\n\n", Options::usage($program);
         exit(2);
+    }
+    if ($options->fibN > 0) {
+        echo (new Benchmark())->fib($options->fibN);
+        return;
     }
     if ($options->benchGames > 0) {
         echo (new Benchmark())->run($options->benchGames, $options->width, $options->height);

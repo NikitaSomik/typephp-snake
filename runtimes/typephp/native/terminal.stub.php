@@ -1,8 +1,8 @@
 <?php
 
-// Declarations of the C++ functions implemented in native/terminal.cc.
-// The compiled binary links the C++ code; bin/snake.php loads a pure-PHP
-// implementation of the same API from polyfill/terminal.php instead.
+// The terminal contract: six functions the game calls to talk to the terminal.
+// For TypePHP they are implemented in C++ (terminal.cc next to this file).
+// Every other runtime implements the same functions in runtimes/<name>/terminal.php.
 
 function term_raw_on(): bool {}
 

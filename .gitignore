@@ -9,3 +9,4 @@
 .idea/
 *.o
 .php-cs-fixer.cache
+/runtimes/elephc/snake

@@ -15,6 +15,7 @@ final class OptionsTest extends TestCase
         self::assertSame(16, $options->height);
         self::assertFalse($options->ascii);
         self::assertSame(0, $options->benchGames);
+        self::assertSame(0, $options->fibN);
         self::assertSame('', $options->error);
     }
 
@@ -27,6 +28,13 @@ final class OptionsTest extends TestCase
         self::assertTrue($options->ascii);
         self::assertSame(5, $options->benchGames);
         self::assertSame('', $options->error);
+    }
+
+    public function testParsesTheFibBenchmark(): void
+    {
+        self::assertSame(32, Options::fromArgv(['snake', '--bench-fib'])->fibN);
+        self::assertSame(25, Options::fromArgv(['snake', '--bench-fib=25'])->fibN);
+        self::assertStringContainsString('between 1 and 40', Options::fromArgv(['snake', '--bench-fib=41'])->error);
     }
 
     public function testRejectsInvalidValues(): void

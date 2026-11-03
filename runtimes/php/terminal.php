@@ -1,7 +1,8 @@
 <?php
 
-// Pure-PHP twin of native/terminal.cc, used when the game runs on the regular
-// PHP interpreter (bin/snake.php). Same function names, same semantics.
+// Terminal layer for the regular PHP interpreter (runtimes/php/run.php): the
+// pure-PHP twin of runtimes/typephp/native/terminal.cc. Same function names,
+// same semantics; raw mode and the window size come from `stty`.
 
 /** State shared by the functions below. */
 final class TerminalPolyfillState
