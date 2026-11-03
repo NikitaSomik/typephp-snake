@@ -5,7 +5,7 @@ namespace Snake;
 final class Options
 {
     /** Keep in sync with project.yml; the release workflow checks it against the tag. */
-    public const string VERSION = '1.0.1';
+    public const string VERSION = '1.1.0';
 
     public const int MIN_SIZE = 8;
     public const int MAX_SIZE = 200;
