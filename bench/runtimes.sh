@@ -27,7 +27,14 @@ runtime_version() {
     case "$1" in
         php | php-jit) "$PHP" -r 'echo PHP_VERSION;' 2>/dev/null ;;
         typephp) sed -n '/"name": "swoole\/typephp"/,/"reference"/s/.*"reference": "\(.\{7\}\).*/master@\1/p' composer.lock 2>/dev/null | head -n 1 ;;
-        phpr) "$PHPR" --version 2>/dev/null | head -n 1 ;;
+        # phpr has no --version flag, so ask the running interpreter.
+        phpr)
+            local dir
+            dir=$(mktemp -d) &&
+                printf '<?php echo PHP_VERSION;' >"$dir/version.php" &&
+                "$PHPR" "$dir/version.php" 2>/dev/null
+            rm -rf "$dir"
+            ;;
         elephc) "$ELEPHC" --version 2>/dev/null | head -n 1 ;;
     esac
 }
