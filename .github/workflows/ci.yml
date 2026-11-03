@@ -154,12 +154,14 @@ jobs:
 
       - run: composer install --no-interaction --no-progress
 
-      # Pinned: reproducible numbers, and no unauthenticated GitHub API lookup
-      # for "latest" (it hits the rate limit on shared runners).
+      # Pinned for reproducible numbers. elvm still asks the GitHub API for the
+      # release, and unauthenticated calls from shared runners hit the rate limit,
+      # so it gets the job's read-only token.
       - name: Install elephc
         env:
           ELVM_VERSION: "0.2.1"
           ELEPHC_VERSION: "0.27.6"
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           curl -fsSL https://get.elephc.dev | sh -s -- --no-modify-path
           echo "$HOME/.elvm/bin" >> "$GITHUB_PATH"
